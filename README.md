@@ -8,7 +8,7 @@
 
 **Por favor, busca como crear tu aplicación para discord antes de proseguir, ya que se necesitará tu token para que puedas crear y usar tu propio bot.**
 # Instalación.
-Primero haz una clonación del repositorio de github
+Primero clona el repositorio de github
 ```javascript
 git clone <https://github.com/Noctisq/Kasumi-Bot-Persona5.git>
 ```
