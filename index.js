@@ -5,12 +5,7 @@ const bot = new Discord.Client();
 const { prefix, token } = require("./config.json");
 const express = require("express");
 const app = express();
-app.set("port", process.env.PORT || 3000);
-
-app.get('/', function(req, res){
-  res.send('Todo bien senpai.');
-});
-
+app.set("port", process.env.PORT);
 bot.commands = new Discord.Collection();
 
 const commandFiles = fs
