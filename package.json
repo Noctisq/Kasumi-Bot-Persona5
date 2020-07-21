@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "kasumi": "nodemon index.js"
+    "kasumi": "nodemon index.js",
+    "start": "node index.js"
   },
   "author": "",
   "license": "ISC",
