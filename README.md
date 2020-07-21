@@ -10,7 +10,7 @@
 # Instalación.
 Primero haz una clonación del repositorio de github
 ```javascript
-git clone <urlRepositorio>
+git clone <https://github.com/Noctisq/Kasumi-Bot-Persona5.git>
 ```
 Una vez clonado ejecuta el siguiente comando:
 ```javascript
