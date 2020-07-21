@@ -5,9 +5,8 @@ const bot = new Discord.Client();
 const { prefix, token } = require("./config.json");
 const express = require("express");
 const app = express();
-app.listen(process.env.PORT||3000, function () {
-  console.log("Escuchando peticiones en el puerto:");
-});
+app.set("port", process.env.PORT || 3000);
+
 app.get('/', function(req, res){
   res.send('Todo bien senpai.');
 });
