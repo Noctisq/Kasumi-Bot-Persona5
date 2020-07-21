@@ -52,5 +52,7 @@ bot.on("message", (message) => {
 });
 
 
-
+app.listen(process.env.PORT || 3000, function(){
+  console.log("Express server listening");
+});
 bot.login(token);
