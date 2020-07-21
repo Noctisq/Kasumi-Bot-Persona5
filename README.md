@@ -92,4 +92,4 @@ for (const file of commandFiles) {
   bot.commands.set(command.name, command);
 }
 ```
-Gracias a este proceso podemos hacer un require() de cada uno de nuestros comandos de manera dinámica y no necesitamos hacer hard code de los mismos. Puedes crear tu propia estructura, pero si tu bot tendrá como base a kasumi es necesario que sigas la misma estructura para todos los comandos y así tener un código más entendible para todos.
+Gracias a este proceso podemos hacer un require() de cada uno de nuestros comandos de manera dinámica y no necesitamos hacer hard code de los mismos. Puedes crear tu propia estructura, pero si tu bot tendrá como base a kasumi es necesario que sigas la misma estructura para todos los comandos que vayas a crear.
