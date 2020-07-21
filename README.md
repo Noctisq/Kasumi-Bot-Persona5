@@ -40,7 +40,7 @@ Kasumi cuenta con la siguiente lista de comandos:
 | ky!night |Kasumi te da las buenas noches. :milky_way:|
 
 # Añadiendo nuevos comandos.
-En la carpeta *commands* encontraras todos los comandos que se encuentran presentes para que Kasumi pueda ejecutarlos.
+En la carpeta *commands* encontraras todos los comandos que Kasumi puede utilizar.
 La estructura de un comando es la siguiente: 
 ```javascript
 module.exports = {
