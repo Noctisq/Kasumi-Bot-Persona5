@@ -6,7 +6,7 @@
 |------------|-------------|
 | ![GitHub Logo](https://github.com/Noctisq/Kasumi-Bot-Persona5/blob/master/assets/images/kasumi.png)  |Kasumi es un bot para discord que está en early development, así que por ahora sus funcionalidades están limitadas a reproducir música y a unas cuántas interacciones con el usuario. No tiene ningún tipo de licencia así que pueden usar este código para crear sus propios bots.|
 
-**Porfavor busca como crear tu aplicación para discord antes de proseguir, ya que se necesitará tu token para que puedas crear y usar tu propio bot.**
+**Por favor, busca como crear tu aplicación para discord antes de proseguir, ya que se necesitará tu token para que puedas crear y usar tu propio bot.**
 # Instalación.
 Primero haz una clonación del repositorio de github
 ```javascript
