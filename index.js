@@ -3,6 +3,12 @@ const fs = require("fs");
 const Discord = require("discord.js");
 const bot = new Discord.Client();
 const { prefix, token } = require("./config.json");
+const express = require("express");
+const app = express();
+
+app.get('/', function(req, res){
+  res.send('Todo bien senpai.');
+});
 
 bot.commands = new Discord.Collection();
 
@@ -52,7 +58,6 @@ bot.on("message", (message) => {
 });
 
 
-app.listen(process.env.PORT || 3000, function(){
-  console.log("Express server listening");
-});
+
 bot.login(token);
+
