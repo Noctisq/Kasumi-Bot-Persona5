@@ -2,9 +2,9 @@ require("dotenv").config();
 const fs = require("fs");
 const Discord = require("discord.js");
 const bot = new Discord.Client();
-const config = require("./config.json");
-let prefix = process.env.PREFIX || config.prefix;
-let token = process.env.TOKEN || config.token;
+
+let prefix = process.env.PREFIX
+let token = process.env.TOKEN 
 bot.commands = new Discord.Collection();
 
 const commandFiles = fs
