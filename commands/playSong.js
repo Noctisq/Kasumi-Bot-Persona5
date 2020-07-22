@@ -122,37 +122,52 @@ module.exports = {
       });
     } else {
       if (args[0].includes("list=")) {
-        ytpl(args[0], function(err, playlist) {
-          if(err) throw err;
-          playlist.items.forEach(async song => {
+        ytpl(args[0], function (err, playlist) {
+          if (err) throw err;
+          playlist.items.forEach(async (song) => {
             const songInfo = await ytdl.getInfo(song.author.ref);
             const song1 = {
               title: songInfo.videoDetails.title,
               url: songInfo.videoDetails.video_url,
             };
             songs.push(song1);
-          })
+          });
+          const connection = await message.member.voice.channel.join();
+          const isPlaying = connection.dispatcher;
+
+          if (isPlaying) {
+            message.channel.send(
+              `¡La playlist se ha añadido a la cola, senpai! :peach:`
+            );
+          } else {
+            message.channel.send(
+              `¡La playlist se ha añadido a la cola, senpai! y empezó a sonar! :peach:`
+            );
+
+            play(connection, songs, message);
+          }
         });
-      }
-      const songInfo = await ytdl.getInfo(args[0]);
-      const song = {
-        title: songInfo.videoDetails.title,
-        url: songInfo.videoDetails.video_url,
-      };
-      songs.push(song);
-      const connection = await message.member.voice.channel.join();
-      const isPlaying = connection.dispatcher;
-
-      if (isPlaying) {
-        message.channel.send(
-          `¡La canción ${song.title} se ha añadido a la cola, senpai! :peach:`
-        );
       } else {
-        message.channel.send(
-          `¡La canción ${song.title} se ha añadido a la cola, senpai y empezó a sonar! :peach:`
-        );
+        const songInfo = await ytdl.getInfo(args[0]);
+        const song = {
+          title: songInfo.videoDetails.title,
+          url: songInfo.videoDetails.video_url,
+        };
+        songs.push(song);
+        const connection = await message.member.voice.channel.join();
+        const isPlaying = connection.dispatcher;
 
-        play(connection, songs, message);
+        if (isPlaying) {
+          message.channel.send(
+            `¡La canción ${song.title} se ha añadido a la cola, senpai! :peach:`
+          );
+        } else {
+          message.channel.send(
+            `¡La canción ${song.title} se ha añadido a la cola, senpai y empezó a sonar! :peach:`
+          );
+
+          play(connection, songs, message);
+        }
       }
     }
   },
