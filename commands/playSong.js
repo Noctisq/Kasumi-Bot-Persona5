@@ -122,14 +122,15 @@ module.exports = {
       });
     } else {
       if (args[0].includes("list=")) {
-        ytpl(args[0], function (err, playlist) {
+        ytpl(args[0], async function (err, playlist) {
           if (err) throw err;
           playlist.items.forEach(async (song) => {
-            const songInfo = await ytdl.getInfo(song.author.ref);
+          
             const song1 = {
-              title: songInfo.videoDetails.title,
-              url: songInfo.videoDetails.video_url,
+              title: song.title,
+              url: song.url_simple,
             };
+            
             songs.push(song1);
           });
           const connection = await message.member.voice.channel.join();
@@ -174,7 +175,7 @@ module.exports = {
 };
 
 const play = async (connection, songs, message) => {
-  console.log(songs[0].title);
+  
   const dispatcher = connection
     .play(ytdl(songs[0].url, { filter: "audioonly", volume: 10 / 100 }))
     .on("finish", () => {

@@ -30,14 +30,19 @@ module.exports = {
         { name: "love", value: "Te doy amor.",},
         { name: "help", value: "Abrir esta ventana." },
         { name: "play <url o busqueda de canción>", value: "Reproducir una canción",  },
+        { name: "pause", value: "Pausar la música",  },
+        { name: "resume", value: "Resumir la música",  },
         { name: "volume <num>", value: "Volumen 0-100", },
         { name: "skip", value: "Pasar a la siguiente canción", },
+        { name: "reset", value: "Limpiar la cola de canciones", },
+        { name: "stop", value: "Detener el bot.", },
         { name: "night", value: "Me despido de ti :heart:", },
+        
         
       )
      
       .setTimestamp()
-      .setFooter("tqm<3", "attachment://Real_Kasumi.png");
+      .setFooter("tqm<3", "attachment://Kasumi.png");
      
     message.channel.send(exampleEmbed);
   },
