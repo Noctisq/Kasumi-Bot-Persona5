@@ -5,6 +5,7 @@ var songs = [];
 let choice;
 let filter;
 module.exports = {
+  songs: (songs = []),
   name: "play",
   description: "Play a song",
   async execute(message, args) {
@@ -18,19 +19,17 @@ module.exports = {
       );
 
     if (!args[0].includes("https://")) {
-      ytsr.getFilters(args[0], function (err, filters) {
+      let search = args.toString().replace(/,/g, " ");
+      ytsr.getFilters(search, function (err, filters) {
         if (err) throw err;
         filter = filters.get("Type").find((o) => o.name === "Video");
         ytsr.getFilters(filter.ref, function (err, filters) {
           if (err) throw err;
-          filter = filters
-            .get("Duration")
-            .find((o) => o.name.startsWith("Short"));
           var options = {
             limit: 5,
             nextpageRef: filter.ref,
           };
-          ytsr(args[0], options, async function (err, searchResults) {
+          ytsr(search, options, async function (err, searchResults) {
             if (err) throw err;
             let boardSongs = [];
             let show = "";
@@ -93,6 +92,7 @@ module.exports = {
                     );
                     choice = boardSongs[2].url;
                     boardSongs = [];
+                    reaction.message.delete();
                     prePlay(choice, message);
                   }
                 } else if (reaction.emoji.name === "4️⃣") {
@@ -102,9 +102,10 @@ module.exports = {
                     );
                     choice = boardSongs[3].url;
                     boardSongs = [];
+                    reaction.message.delete();
                     prePlay(choice, message);
                   }
-                } else {
+                } else if (reaction.emoji.name === "5️⃣") {
                   if (boardSongs.length != 0) {
                     message.channel.send(
                       "Será la opción 5 entonces, senpai! :black_heart:"
@@ -112,8 +113,15 @@ module.exports = {
 
                     choice = boardSongs[4].url;
                     boardSongs = [];
+                    reaction.message.delete();
                     prePlay(choice, message);
                   }
+                } else {
+                  boardSongs = [];
+                  message.channel.send(
+                    "Ya no te equivoques, senpai:black_heart:"
+                  );
+                  reaction.message.delete();
                 }
               }
             });
@@ -125,12 +133,11 @@ module.exports = {
         ytpl(args[0], async function (err, playlist) {
           if (err) throw err;
           playlist.items.forEach(async (song) => {
-          
             const song1 = {
               title: song.title,
               url: song.url_simple,
             };
-            
+
             songs.push(song1);
           });
           const connection = await message.member.voice.channel.join();
@@ -175,7 +182,6 @@ module.exports = {
 };
 
 const play = async (connection, songs, message) => {
-  
   const dispatcher = connection
     .play(ytdl(songs[0].url, { filter: "audioonly", volume: 10 / 100 }))
     .on("finish", () => {

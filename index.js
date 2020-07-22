@@ -3,8 +3,8 @@ const fs = require("fs");
 const Discord = require("discord.js");
 const bot = new Discord.Client();
 
-let prefix = process.env.PREFIX
-let token = process.env.TOKEN 
+let prefix = process.env.PREFIX;
+let token = process.env.TOKEN;
 bot.commands = new Discord.Collection();
 
 const commandFiles = fs
@@ -33,6 +33,7 @@ bot.on("message", (message) => {
         .then(() => message.react("3️⃣"))
         .then(() => message.react("4️⃣"))
         .then(() => message.react("5️⃣"))
+        .then(() => message.react("❌"))
         .catch(() => console.error("One of the emojis failed to react."));
     }
   }
