@@ -17,7 +17,7 @@ module.exports = {
       );
 
     if (!args[0].includes("https://")) {
-      ytsr.getFilters(args[0], function (err, filters) {
+      ytsr.getFilters(args[0].replace(/ /g, ""), function (err, filters) {
         if (err) throw err;
         filter = filters.get("Type").find((o) => o.name === "Video");
         ytsr.getFilters(filter.ref, function (err, filters) {
