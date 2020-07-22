@@ -18,7 +18,7 @@ module.exports = {
       );
 
     if (!args[0].includes("https://")) {
-      ytsr.getFilters(args[0].replace(/ /g, ""), function (err, filters) {
+      ytsr.getFilters(args[0], function (err, filters) {
         if (err) throw err;
         filter = filters.get("Type").find((o) => o.name === "Video");
         ytsr.getFilters(filter.ref, function (err, filters) {
@@ -30,7 +30,7 @@ module.exports = {
             limit: 5,
             nextpageRef: filter.ref,
           };
-          ytsr(null, options, async function (err, searchResults) {
+          ytsr(args[0], options, async function (err, searchResults) {
             if (err) throw err;
             let boardSongs = [];
             let show = "";
