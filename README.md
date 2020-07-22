@@ -34,10 +34,14 @@ Kasumi cuenta con la siguiente lista de comandos:
 |------------|-------------|
 | ky!love |Kasumi interactúa contigo :heartbeat:|
 | ky!help |Kasumi abre una ventana de ayuda dentro de discord :smile:| 
-| ky!play <url> |Kasumi recibe un link de youtube o de pista de audio para reproducirla, si ya hay alguna sonando la añade a la cola. :white_heart:|
+| ky!play <url> |Kasumi recibe un link de youtube o un string de búsqueda, si ya hay alguna sonando la añade a la cola. :white_heart:|
+| ky!pause |Kasumi pausa la música :black_heart:|
+| ky!resume |Kasumi reanuda la música :black_heart:|
+| ky!reset|Kasumi limpia la cola de canciones :black_heart:|	
 | ky!volume <numVol> |Kasumi recibe un número de entre 0-100 para subir o bajar el volumen de la música :musical_score:|
 | ky!skip |Kasumi pasa a la siguiente canción en la cola :ghost:|
 | ky!night |Kasumi te da las buenas noches. :milky_way:|
+| ky!pause |Kasumi para sus funciones :black_heart:|
 
 # Añadiendo nuevos comandos.
 En la carpeta *commands* encontraras todos los comandos que Kasumi puede utilizar.
