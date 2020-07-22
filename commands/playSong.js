@@ -1,6 +1,7 @@
 const ytdl = require("ytdl-core");
-var songs = [];
 const ytsr = require("ytsr");
+var ytpl = require("ytpl");
+var songs = [];
 let choice;
 let filter;
 module.exports = {
@@ -108,7 +109,7 @@ module.exports = {
                     message.channel.send(
                       "Será la opción 5 entonces, senpai! :black_heart:"
                     );
-                    
+
                     choice = boardSongs[4].url;
                     boardSongs = [];
                     prePlay(choice, message);
@@ -120,6 +121,19 @@ module.exports = {
         });
       });
     } else {
+      if (args[0].includes("list=")) {
+        ytpl(args[0], function(err, playlist) {
+          if(err) throw err;
+          playlist.items.forEach(async song => {
+            const songInfo = await ytdl.getInfo(song.author.ref);
+            const song1 = {
+              title: songInfo.videoDetails.title,
+              url: songInfo.videoDetails.video_url,
+            };
+            songs.push(song1);
+          })
+        });
+      }
       const songInfo = await ytdl.getInfo(args[0]);
       const song = {
         title: songInfo.videoDetails.title,
