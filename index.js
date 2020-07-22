@@ -2,8 +2,9 @@ require("dotenv").config();
 const fs = require("fs");
 const Discord = require("discord.js");
 const bot = new Discord.Client();
-const { prefix, token } = require("./config.json");
-
+const config = require("./config.json");
+let prefix = process.env.PREFIX || config.prefix;
+let token = process.env.TOKEN || config.token;
 bot.commands = new Discord.Collection();
 
 const commandFiles = fs
@@ -17,11 +18,25 @@ for (const file of commandFiles) {
 //Ver nombre del bot
 bot.on("ready", () => {
   console.info(`Iniciando a ${bot.user.tag}!`);
+  module.exports = bot;
+
 });
 
 bot.on("message", (message) => {
-  if (!message.content.startsWith(prefix) || message.author.bot) return;
+  console.log("que es estoooo : ", message.author.bot);
 
+  if (message.author.bot) {
+    if (message.content.startsWith("Senpai,")) {
+      message
+        .react("1️⃣")
+        .then(() => message.react("2️⃣"))
+        .then(() => message.react("3️⃣"))
+        .then(() => message.react("4️⃣"))
+        .then(() => message.react("5️⃣"))
+        .catch(() => console.error("One of the emojis failed to react."));
+    }
+  }
+  if (!message.content.startsWith(prefix)) return;
   const args = message.content.slice(prefix.length).trim().split(/ +/);
   const commandName = args.shift().toLowerCase();
 
@@ -31,7 +46,6 @@ bot.on("message", (message) => {
   const command = bot.commands.get(commandName);
   try {
     command.execute(message, args);
-   
   } catch (err) {
     console.log(err);
     message.reply("Algo salió mal, perdóname senpai :(!");
@@ -50,8 +64,6 @@ bot.on("message", (message) => {
   //     message.channel.send(`Nombre del comando: ${command}\nArgumentos: ${args}`);
   //   }
 });
-
-
 
 bot.login(token);
 
