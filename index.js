@@ -7,6 +7,9 @@ let prefix = process.env.PREFIX;
 let token = process.env.TOKEN;
 bot.commands = new Discord.Collection();
 
+process.on("unhandledRejection", (error) =>
+  console.error("Uncaught Promise Rejection", error)
+);
 const commandFiles = fs
   .readdirSync("./commands")
   .filter((file) => file.endsWith(".js"));
@@ -16,14 +19,15 @@ for (const file of commandFiles) {
   bot.commands.set(command.name, command);
 }
 //Ver nombre del bot
+const cooldowns = new Discord.Collection();
+
 bot.on("ready", () => {
   console.info(`Iniciando a ${bot.user.tag}!`);
   module.exports = bot;
-
 });
 
 bot.on("message", (message) => {
-  console.log("que es estoooo : ", message.author.bot);
+  console.log("Es mensaje del bot? ", message.author.bot);
 
   if (message.author.bot) {
     if (message.content.startsWith("Senpai,")) {
@@ -45,6 +49,28 @@ bot.on("message", (message) => {
     return message.reply("Parece que no existe este comando, senpai :c");
   }
   const command = bot.commands.get(commandName);
+  if (!cooldowns.has(command.name)) {
+    cooldowns.set(command.name, new Discord.Collection());
+  }
+
+  const now = Date.now();
+  const timestamps = cooldowns.get(command.name);
+  const cooldownAmount = (command.cooldown || 3) * 1000;
+
+  if (timestamps.has(message.author.id)) {
+    const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
+
+    if (now < expirationTime) {
+      const timeLeft = (expirationTime - now) / 1000;
+      return message.reply(
+        `Espera ${timeLeft.toFixed(
+          1
+        )} segundos más antes de utilizar el comando \`${command.name}\`, senpai :heart: .`
+      );
+    }
+  }
+  timestamps.set(message.author.id, now);
+	setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
   try {
     command.execute(message, args);
   } catch (err) {
@@ -67,4 +93,3 @@ bot.on("message", (message) => {
 });
 
 bot.login(token);
-

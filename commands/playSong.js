@@ -4,19 +4,39 @@ var ytpl = require("ytpl");
 var songs = [];
 let choice;
 let filter;
+
+
 module.exports = {
   songs: (songs = []),
   name: "play",
+  cooldown: 3,
   description: "Play a song",
   async execute(message, args) {
     const bot = require("../index");
-
+    
+    let isSearching = false;
     if (!message.member.voice.channel)
       return message.channel.send("No estás en ningún chat de voz, senpai :c");
     if (args.length == 0)
       return message.channel.send(
         "¿Qué canción reproduzco?, no seas baboso senpai."
       );
+
+     if(message.channel.messages.cache.some(elem =>elem.content.startsWith("Senpai,"))) {
+      return message.reply(
+        `Primero elige una canción de la anterior búsqueda, senpai:black_heart:`
+      );
+     }
+    // for (msg of message.channel.messages.cache) {
+    //   console.log(msg.content)
+    //   if (msg.content.startsWith("Senpai,")) {
+    //     isSearching = true;
+    //   } else {
+    //     isSearching = false;
+    //   }
+    // }
+
+   
 
     if (!args[0].includes("https://")) {
       let search = args.toString().replace(/,/g, " ");
@@ -35,6 +55,8 @@ module.exports = {
             let show = "";
             let cont = 1;
 
+            console.log("message content; ", message.content);
+
             searchResults.items.forEach((item) => {
               boardSongs.push({
                 id: cont,
@@ -49,20 +71,8 @@ module.exports = {
             message.channel.send(
               `Senpai, esto es lo que encontré: ${show} \nElije una de las cinco opciones, senpai :heart:`
             );
+
             bot.on("messageReactionAdd", async (reaction, user) => {
-              if (reaction.partial) {
-                try {
-                  await reaction.fetch();
-                } catch (error) {
-                  console.log(
-                    "Something went wrong when fetching the message: ",
-                    error
-                  );
-
-                  return;
-                }
-              }
-
               if (user.username != "Kasumi") {
                 if (reaction.emoji.name === "1️⃣") {
                   console.log("ya déjame dormir hijo de perra: ", boardSongs);
@@ -117,11 +127,11 @@ module.exports = {
                     prePlay(choice, message);
                   }
                 } else {
-                  boardSongs = [];
-                  message.channel.send(
-                    "Ya no te equivoques, senpai:black_heart:"
-                  );
-                  reaction.message.delete();
+                  if (boardSongs.length != 0) {
+                    boardSongs = [];
+                    message.reply("Ya no te equivoques, senpai:black_heart:");
+                    reaction.message.delete();
+                  }
                 }
               }
             });
