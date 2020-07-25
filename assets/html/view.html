@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kasumi</title>
+    <link
+      rel="stylesheet"
+      href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/styles/default.min.css"
+    />
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/highlight.min.js"></script>
+    <!-- and it's easy to individually load additional languages -->
+    <script
+      charset="UTF-8"
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/languages/go.min.js"
+    ></script>
+    <script
+      src="https://kit.fontawesome.com/b422aad639.js"
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      /**** Sass Variables ****/
+      * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+      }
+      html {
+        background: #f42f2c; /* fallback for old browsers */
+        background: -webkit-linear-gradient(
+          #000,
+          #f42f2c
+        ); /* Chrome 10-25, Safari 5.1-6 */
+        background: linear-gradient(
+          #000,
+          #f42f2c
+        ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+        
+      }
+      body {
+        font-family: "IBM Plex Mono", monospace;
+       
+        overflow-x: hidden;
+      }
+      .container {
+        max-width: 900px;
+        display: flex;
+        justify-content: space-evenly;
+        margin: 0 auto;
+      }
+      .content2 {
+        margin: 3em;
+        width: 100%;
+        line-height: 1.5;
+        display: flex;
+        justify-content: space-evenly;
+      }
+      .info{
+        max-width: 500px;
+      }
+      p{
+          color:#FF94B7;
+          font-size: 25px;
+          text-align: justify;
+          
+      }
+      .commands{
+        max-width: 500px;
+      }
+      svg {
+        width: 45px;
+        height: 45px;
+        margin-left: 50px;
+        fill: red;
+      }
+      svg:hover {
+        fill: purple;
+      }
+
+      .card-wrapper {
+        width: 400px;
+        height: 500px;
+        position: relative;
+      }
+      .card {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 600px;
+        height: 338px;
+        transform: translate(-50%, -50%);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 5px 18px rgba(0, 0, 0, 0.6);
+        cursor: pointer;
+        transition: 0.5s;
+      }
+      .card .card-image {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        width: 100%;
+        height: 100%;
+        z-index: 2;
+
+        transition: 0.5s;
+      }
+      .card:hover img {
+        transition: 0.5s;
+      }
+      .card:hover .card-image {
+        transform: translateY(-100px);
+        transition: all 0.9s;
+      }
+
+      .details {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+
+        width: 100%;
+        height: 50px;
+        z-index: 1;
+        padding: 10px;
+      }
+      .details h2 {
+        margin: 30px 0;
+        padding: 0;
+        text-align: center;
+      }
+      .details h2 .job-title {
+        font-size: 1rem;
+        line-height: 2.5rem;
+        color: #333;
+        font-weight: 300;
+      }
+      .kasumi {
+        position: absolute;
+        bottom: -120px;
+        left: 0;
+
+        width: 100%;
+        height: 50px;
+        z-index: 3;
+        padding: 0px;
+        transition: 0.4s;
+      }
+      
+table{
+  width:100%;
+  table-layout: fixed;
+}
+.tbl-header{
+  background-color: rgba(255,255,255,0.1);
+ }
+.tbl-content{
+  height:150px;
+  overflow-x:auto;
+  margin-top: 0px;
+  
+}
+th{
+  padding: 20px 15px;
+  text-align: left;
+  font-weight: 500;
+  font-size: 18px;
+  color: #fff;
+  text-transform: uppercase;
+}
+td{
+  padding: 15px;
+  text-align: left;
+  vertical-align:middle;
+  font-weight: 300;
+  font-size: 16px;
+  color: #fff;
+  
+}
+
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        color: white;
+        
+      }
+      .profile-two .social-icons li a {
+        border-radius: 50%;
+      }
+      .card:hover .profile-img--two {
+        transform: rotateY(180deg);
+      }
+      .card:hover .kasumi {
+        bottom: 0;
+        left: 0;
+        transition-delay: 0.5s;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card-wrapper">
+        <div class="card profile-two">
+          <div class="card-image profile-img--two">
+            <img
+              src="https://i.ibb.co/FJqCkLD/Kasumi.gif"
+              alt="Kasumi"
+              border="0"
+              height="100%"
+              width="100%"
+            />
+          </div>
+
+          <div class="details kasumi">
+            <a
+              target="_blank"
+              href="https://github.com/Noctisq/Kasumi-Bot-Persona5"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="svg-inline--fa fa-github fa-w-16"
+                role="img"
+                aria-hidden="true"
+                viewBox="0 0 496 512"
+                focusable="false"
+                data-icon="github"
+                data-prefix="fab"
+              >
+                <path
+                  d="M 165.9 397.4 c 0 2 -2.3 3.6 -5.2 3.6 c -3.3 0.3 -5.6 -1.3 -5.6 -3.6 c 0 -2 2.3 -3.6 5.2 -3.6 c 3 -0.3 5.6 1.3 5.6 3.6 Z m -31.1 -4.5 c -0.7 2 1.3 4.3 4.3 4.9 c 2.6 1 5.6 0 6.2 -2 s -1.3 -4.3 -4.3 -5.2 c -2.6 -0.7 -5.5 0.3 -6.2 2.3 Z m 44.2 -1.7 c -2.9 0.7 -4.9 2.6 -4.6 4.9 c 0.3 2 2.9 3.3 5.9 2.6 c 2.9 -0.7 4.9 -2.6 4.6 -4.6 c -0.3 -1.9 -3 -3.2 -5.9 -2.9 Z M 244.8 8 C 106.1 8 0 113.3 0 252 c 0 110.9 69.8 205.8 169.5 239.2 c 12.8 2.3 17.3 -5.6 17.3 -12.1 c 0 -6.2 -0.3 -40.4 -0.3 -61.4 c 0 0 -70 15 -84.7 -29.8 c 0 0 -11.4 -29.1 -27.8 -36.6 c 0 0 -22.9 -15.7 1.6 -15.4 c 0 0 24.9 2 38.6 25.8 c 21.9 38.6 58.6 27.5 72.9 20.9 c 2.3 -16 8.8 -27.1 16 -33.7 c -55.9 -6.2 -112.3 -14.3 -112.3 -110.5 c 0 -27.5 7.6 -41.3 23.6 -58.9 c -2.6 -6.5 -11.1 -33.3 2.6 -67.9 c 20.9 -6.5 69 27 69 27 c 20 -5.6 41.5 -8.5 62.8 -8.5 s 42.8 2.9 62.8 8.5 c 0 0 48.1 -33.6 69 -27 c 13.7 34.7 5.2 61.4 2.6 67.9 c 16 17.7 25.8 31.5 25.8 58.9 c 0 96.5 -58.9 104.2 -114.8 110.5 c 9.2 7.9 17 22.9 17 46.4 c 0 33.7 -0.3 75.4 -0.3 83.6 c 0 6.5 4.6 14.4 17.3 12.1 C 428.2 457.8 496 362.9 496 252 C 496 113.3 383.5 8 244.8 8 Z M 97.2 352.9 c -1.3 1 -1 3.3 0.7 5.2 c 1.6 1.6 3.9 2.3 5.2 1 c 1.3 -1 1 -3.3 -0.7 -5.2 c -1.6 -1.6 -3.9 -2.3 -5.2 -1 Z m -10.8 -8.1 c -0.7 1.3 0.3 2.9 2.3 3.9 c 1.6 1 3.6 0.7 4.3 -0.7 c 0.7 -1.3 -0.3 -2.9 -2.3 -3.9 c -2 -0.6 -3.6 -0.3 -4.3 0.7 Z m 32.4 35.6 c -1.6 1.3 -1 4.3 1.3 6.2 c 2.3 2.3 5.2 2.6 6.5 1 c 1.3 -1.3 0.7 -4.3 -1.3 -6.2 c -2.2 -2.3 -5.2 -2.6 -6.5 -1 Z m -11.4 -14.7 c -1.6 1 -1.6 3.6 0 5.9 c 1.6 2.3 4.3 3.3 5.6 2.3 c 1.6 -1.3 1.6 -3.9 0 -6.2 c -1.4 -2.3 -4 -3.3 -5.6 -2 Z"
+                />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- END box wrapper -->
+    </div>
+
+    <div class="content2">
+      <div class="info">
+        <h1>Kasumi Bot for discord</h1>
+        <p>
+          Kasumi es un bot para discord que está en early development, así que
+          por ahora sus funcionalidades están limitadas a reproducir música y a
+          unas cuántas interacciones con el usuario. No tiene ningún tipo de
+          licencia así que pueden usar este código para crear sus propios bots.
+        </p>
+      </div>
+      <div class="commands">
+        <h1>Comandos</h1>
+        <div class="tbl-header">
+            <table cellpadding="0" cellspacing="0" border="0">
+              <thead>
+                <tr>
+                  <th>Comando</th>
+                  <th>Descripción</th>
+                  
+                </tr>
+              </thead>
+            </table>
+          </div>
+          <div class="tbl-content">
+            <table cellpadding="0" cellspacing="0" border="0">
+              <tbody>
+                <tr>
+                  <td>ky!love</td>
+                  <td>Kasumi te da amor🤍</td>
+                  
+                </tr>
+                <tr>
+                    <td>ky!help</td>
+                    <td>Kasumi abre una ventana de ayuda dentro de discord🤍</td>
+                    
+                  </tr>
+                  <tr>
+                    <td>ky!play</td>
+                    <td>Kasumi recibe un link de youtube o un string de búsqueda, si ya hay alguna sonando la añade a la cola.🤍</td>
+                    
+                  </tr>
+                  <tr>
+                    <td>ky!pause</td>
+                    <td>Kasumi pausa la música🤍</td>
+                    
+                  </tr>
+                  <tr>
+                    <td>ky!resume</td>
+                    <td>Kasumi reanuda la música🤍</td>
+                    
+                  </tr>
+                  <tr>
+                    <td>ky!reset</td>
+                    <td>Kasumi limpia la cola de canciones🤍</td>
+                    
+                  </tr>
+                  <tr>
+                    <td>ky!volume</td>
+                    <td>Kasumi recibe un número de entre 0-100 para subir o bajar el volumen de la música🤍</td>
+                    
+                  </tr>
+                  <tr>
+                    <td>ky!skip</td>
+                    <td>Kasumi pasa a la siguiente canción en la cola🤍</td>
+                    
+                  </tr>
+                  <tr>
+                    <td>ky!night</td>
+                    <td>Kasumi te da las buenas noches.🤍</td>
+                    
+                  </tr>
+                  <tr>
+                    <td>ky!pause</td>
+                    <td>Kasumi para sus funciones🤍</td>
+                    
+                  </tr>
+                
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+  </body>
+</html>
