@@ -14,7 +14,7 @@ module.exports = {
   async execute(message, args) {
     const bot = require("../index");
     
-
+    let isSearching = false;
     if (!message.member.voice.channel)
       return message.channel.send("No estás en ningún chat de voz, senpai :c");
     if (args.length == 0)
@@ -193,7 +193,7 @@ module.exports = {
 
 const play = async (connection, songs, message) => {
   const dispatcher = connection
-    .play(ytdl(songs[0].url, { filter: "audioonly"}))
+    .play(ytdl(songs[0].url, { filter: "audioonly", volume: 20 / 100 }))
     .on("finish", () => {
       console.log("Terminó, la que sigue!");
       // Deletes the finished song from the queue
@@ -210,7 +210,7 @@ const play = async (connection, songs, message) => {
     .on("error", (error) => {
       console.error(error);
     });
-  
+  dispatcher.setVolumeLogarithmic(20 / 100);
 };
 
 const prePlay = async (choice, message) => {
