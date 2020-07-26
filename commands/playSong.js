@@ -6,7 +6,7 @@ let choice;
 let filter;
 
 module.exports = {
-  songs: (songs = []),
+  songs: songs,
   name: "play",
   cooldown: 3,
   description: "Play a song",
