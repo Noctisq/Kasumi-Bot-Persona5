@@ -3,8 +3,8 @@ const fs = require("fs");
 const Discord = require("discord.js");
 const bot = new Discord.Client();
 
-let prefix = process.env.PREFIX;
-let token = process.env.TOKEN;
+let prefix = "ky!";
+let token = "NzM0ODc0ODgzMTg3NTM5OTc4.XxYEOw.qlIHjmObH5QW9aha-qvxnelLVk4";
 bot.commands = new Discord.Collection();
 
 process.on("unhandledRejection", (error) =>

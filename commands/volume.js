@@ -8,8 +8,14 @@ module.exports = {
       return message.channel.send(
         "No te olvides de poner el volumen. Senpai tan pendejo :heart:"
       );
-
-    console.log("este es el volumen que llega: ", args);
+    
+    if(message.author.username == "mepicalacola"){
+      return message.channel.send(
+        "Chingas a tu puta madre senpai, tú no puedes hacer eso :3:heart:"
+      );
+    }
+    
+    console.log("este es el volumen que llega: ", message.author.username);
     const connection = await message.member.voice.channel.join();
 
     const dispatcher = connection.dispatcher;

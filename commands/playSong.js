@@ -6,13 +6,14 @@ let choice;
 let filter;
 
 module.exports = {
-  songs: songs,
+  songs: songs=[],
   name: "play",
   cooldown: 3,
   description: "Play a song",
   async execute(message, args) {
     const bot = require("../index");
 
+    
     if (!message.member.voice.channel)
       return message.channel.send("No estás en ningún chat de voz, senpai :c");
     if (args.length == 0)
