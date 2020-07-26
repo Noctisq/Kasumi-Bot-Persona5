@@ -5,7 +5,6 @@ var songs = [];
 let choice;
 let filter;
 
-
 module.exports = {
   songs: (songs = []),
   name: "play",
@@ -13,8 +12,7 @@ module.exports = {
   description: "Play a song",
   async execute(message, args) {
     const bot = require("../index");
-    
-    let isSearching = false;
+
     if (!message.member.voice.channel)
       return message.channel.send("No estás en ningún chat de voz, senpai :c");
     if (args.length == 0)
@@ -22,11 +20,15 @@ module.exports = {
         "¿Qué canción reproduzco?, no seas baboso senpai."
       );
 
-     if(message.channel.messages.cache.some(elem =>elem.content.startsWith("Senpai,"))) {
+    if (
+      message.channel.messages.cache.some((elem) =>
+        elem.content.startsWith("Senpai,")
+      )
+    ) {
       return message.reply(
         `Primero elige una canción de la anterior búsqueda, senpai:black_heart:`
       );
-     }
+    }
     // for (msg of message.channel.messages.cache) {
     //   console.log(msg.content)
     //   if (msg.content.startsWith("Senpai,")) {
@@ -35,8 +37,6 @@ module.exports = {
     //     isSearching = false;
     //   }
     // }
-
-   
 
     if (!args[0].includes("https://")) {
       let search = args.toString().replace(/,/g, " ");
@@ -54,9 +54,6 @@ module.exports = {
             let boardSongs = [];
             let show = "";
             let cont = 1;
-
-            console.log("message content; ", message.content);
-
             searchResults.items.forEach((item) => {
               boardSongs.push({
                 id: cont,
