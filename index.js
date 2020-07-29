@@ -65,12 +65,14 @@ bot.on("message", (message) => {
       return message.reply(
         `Espera ${timeLeft.toFixed(
           1
-        )} segundos más antes de utilizar el comando \`${command.name}\`, senpai :heart: .`
+        )} segundos más antes de utilizar el comando \`${
+          command.name
+        }\`, senpai :heart: .`
       );
     }
   }
   timestamps.set(message.author.id, now);
-	setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+  setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
   try {
     command.execute(message, args);
   } catch (err) {
