@@ -2,10 +2,21 @@ require("dotenv").config();
 const fs = require("fs");
 const Discord = require("discord.js");
 const bot = new Discord.Client();
-
-let prefix = process.env.PREFIX;
+const mongoose = require("mongoose");
+let prefix = process.env.prefix;
 let token = process.env.TOKEN;
 bot.commands = new Discord.Collection();
+
+mongoose.connect(
+  `mongodb+srv://Noctis:${process.env.DBPASSWORD}@steamdb.gs3i1.mongodb.net/${process.env.DBNAME}?retryWrites=true&w=majority`,
+  (err) => {
+    if (err) {
+      return console.log("error", err);
+    }
+
+    console.log("Conectado a la base de datos");
+  }
+);
 
 process.on("unhandledRejection", (error) =>
   console.error("Uncaught Promise Rejection", error)
