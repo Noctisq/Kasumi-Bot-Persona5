@@ -3,7 +3,7 @@ const fs = require("fs");
 const Discord = require("discord.js");
 const bot = new Discord.Client();
 const mongoose = require("mongoose");
-let prefix = process.env.prefix;
+let prefix = process.env.PREFIX;
 let token = process.env.TOKEN;
 bot.commands = new Discord.Collection();
 
