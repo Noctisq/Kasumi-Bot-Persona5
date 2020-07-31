@@ -25,7 +25,7 @@ module.exports = {
       message.channel.send("Recolectando datos, senpai...");
 
       fetch(
-        `https://store.steampowered.com/api/appdetails?appids=${docs.appid}`
+        `https://store.steampowered.com/api/appdetails?appids=${docs.appid}&cc=mxn`
       )
         .then((response) => {
           return response.json();
