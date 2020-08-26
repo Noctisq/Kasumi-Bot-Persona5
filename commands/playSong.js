@@ -6,14 +6,13 @@ let choice;
 let filter;
 
 module.exports = {
-  songs: songs=[],
+  songs: (songs = []),
   name: "play",
   cooldown: 3,
   description: "Play a song",
   async execute(message, args) {
     const bot = require("../index");
 
-    
     if (!message.member.voice.channel)
       return message.channel.send("No estás en ningún chat de voz, senpai :c");
     if (args.length == 0)
@@ -42,7 +41,10 @@ module.exports = {
     if (!args[0].includes("https://")) {
       let search = args.toString().replace(/,/g, " ");
       ytsr.getFilters(search, function (err, filters) {
-        if (err) throw err;
+        if (err)
+          return message.channel.send(
+            `Parece que hubo un error, ¿puedes buscar de nuevo, senpai?`
+          );
         filter = filters.get("Type").find((o) => o.name === "Video");
         ytsr.getFilters(filter.ref, function (err, filters) {
           if (err) throw err;

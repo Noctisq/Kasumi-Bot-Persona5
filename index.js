@@ -3,6 +3,7 @@ const fs = require("fs");
 const Discord = require("discord.js");
 const bot = new Discord.Client();
 const mongoose = require("mongoose");
+
 let prefix = process.env.PREFIX;
 let token = process.env.TOKEN;
 bot.commands = new Discord.Collection();
@@ -13,14 +14,14 @@ mongoose.connect(
     if (err) {
       return console.log("error", err);
     }
-
     console.log("Conectado a la base de datos");
   }
 );
 
-process.on("unhandledRejection", (error) =>
-  console.error("Uncaught Promise Rejection", error)
-);
+process.on("unhandledRejection", (error) => {
+  console.log("este es el error: ", error);
+});
+
 const commandFiles = fs
   .readdirSync("./commands")
   .filter((file) => file.endsWith(".js"));
@@ -41,16 +42,21 @@ bot.on("message", (message) => {
   console.log("Es mensaje del bot? ", message.author.bot);
 
   if (message.author.bot) {
-    if (message.content.startsWith("Senpai,")) {
-      message
-        .react("1️⃣")
-        .then(() => message.react("2️⃣"))
-        .then(() => message.react("3️⃣"))
-        .then(() => message.react("4️⃣"))
-        .then(() => message.react("5️⃣"))
-        .then(() => message.react("❌"))
-        .catch(() => console.error("One of the emojis failed to react."));
-    }
+    if (
+      message.channel.messages.cache.some((elem) =>
+        elem.content.startsWith("Senpai,")
+      )
+    )
+      if (message.content.startsWith("Senpai,")) {
+        message
+          .react("1️⃣")
+          .then(() => message.react("2️⃣"))
+          .then(() => message.react("3️⃣"))
+          .then(() => message.react("4️⃣"))
+          .then(() => message.react("5️⃣"))
+          .then(() => message.react("❌"))
+          .catch(() => console.error("One of the emojis failed to react."));
+      }
   }
   if (!message.content.startsWith(prefix)) return;
   const args = message.content.slice(prefix.length).trim().split(/ +/);
@@ -83,7 +89,7 @@ bot.on("message", (message) => {
     }
   }
   timestamps.set(message.author.id, now);
-  setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+  setTimeosut(() => timestamps.delete(message.author.id), cooldownAmount);
   try {
     command.execute(message, args);
   } catch (err) {
