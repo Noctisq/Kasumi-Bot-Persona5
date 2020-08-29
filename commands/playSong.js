@@ -1,6 +1,8 @@
 const ytdl = require("ytdl-core");
 const ytsr = require("ytsr");
+const Discord = require("discord.js");
 var ytpl = require("ytpl");
+
 var songs = [];
 let choice;
 let filter;
@@ -12,7 +14,7 @@ module.exports = {
   description: "Play a song",
   async execute(message, args) {
     const bot = require("../index");
-
+   
     if (!message.member.voice.channel)
       return message.channel.send("No estás en ningún chat de voz, senpai :c");
     if (args.length == 0)
@@ -47,21 +49,30 @@ module.exports = {
           );
         filter = filters.get("Type").find((o) => o.name === "Video");
         ytsr.getFilters(filter.ref, function (err, filters) {
-          if (err) throw err;
+          if (err)
+            if (err)
+              return message.channel.send(
+                `Parece que hubo un error, ¿puedes buscar de nuevo, senpai?`
+              );
           var options = {
             limit: 5,
             nextpageRef: filter.ref,
           };
           ytsr(search, options, async function (err, searchResults) {
-            if (err) throw err;
+            if (err)
+              return message.channel.send(
+                `Parece que hubo un error, ¿puedes buscar de nuevo, senpai?`
+              );
             let boardSongs = [];
             let show = "";
             let cont = 1;
+
             searchResults.items.forEach((item) => {
               boardSongs.push({
                 id: cont,
                 title: item.title,
                 url: item.link,
+                img: item.thumbnail,
               });
               cont++;
             });
@@ -75,22 +86,22 @@ module.exports = {
             bot.on("messageReactionAdd", async (reaction, user) => {
               if (user.username != "Kasumi") {
                 if (reaction.emoji.name === "1️⃣") {
-                  console.log("ya déjame dormir hijo de perra: ", boardSongs);
                   if (boardSongs.length != 0) {
                     message.channel.send(
-                      "Será la opción 1 entonces, senpai! :black_heart:"
+                      `Será la opción 1️⃣ entonces, senpai! :black_heart:`
                     );
-                    choice = boardSongs[0].url;
+                    choice = boardSongs[0];
                     boardSongs = [];
                     reaction.message.delete();
+
                     prePlay(choice, message);
                   }
                 } else if (reaction.emoji.name === "2️⃣") {
                   if (boardSongs.length != 0) {
                     message.channel.send(
-                      "Será la opción 2 entonces, senpai! :black_heart:"
+                      "Será la opción 2️⃣ entonces, senpai! :black_heart:"
                     );
-                    choice = boardSongs[1].url;
+                    choice = boardSongs[1];
                     boardSongs = [];
                     reaction.message.delete();
                     prePlay(choice, message);
@@ -98,9 +109,9 @@ module.exports = {
                 } else if (reaction.emoji.name === "3️⃣") {
                   if (boardSongs.length != 0) {
                     message.channel.send(
-                      "Será la opción 3 entonces, senpai! :black_heart:"
+                      "Será la opción 3️⃣ entonces, senpai! :black_heart:"
                     );
-                    choice = boardSongs[2].url;
+                    choice = boardSongs[2];
                     boardSongs = [];
                     reaction.message.delete();
                     prePlay(choice, message);
@@ -108,9 +119,9 @@ module.exports = {
                 } else if (reaction.emoji.name === "4️⃣") {
                   if (boardSongs.length != 0) {
                     message.channel.send(
-                      "Será la opción 4 entonces, senpai! :black_heart:"
+                      "Será la opción 4️⃣ entonces, senpai! :black_heart:"
                     );
-                    choice = boardSongs[3].url;
+                    choice = boardSongs[3];
                     boardSongs = [];
                     reaction.message.delete();
                     prePlay(choice, message);
@@ -118,10 +129,10 @@ module.exports = {
                 } else if (reaction.emoji.name === "5️⃣") {
                   if (boardSongs.length != 0) {
                     message.channel.send(
-                      "Será la opción 5 entonces, senpai! :black_heart:"
+                      "Será la opción 5️⃣ entonces, senpai! :black_heart:"
                     );
 
-                    choice = boardSongs[4].url;
+                    choice = boardSongs[4];
                     boardSongs = [];
                     reaction.message.delete();
                     prePlay(choice, message);
@@ -167,25 +178,16 @@ module.exports = {
         });
       } else {
         const songInfo = await ytdl.getInfo(args[0]);
+       
         const song = {
           title: songInfo.videoDetails.title,
           url: songInfo.videoDetails.video_url,
+          img:
+            (songInfo.videoDetails.thumbnail.thumbnails[4])
+              ? songInfo.videoDetails.thumbnail.thumbnails[4].url
+              : songInfo.videoDetails.thumbnail.thumbnails[3].url,
         };
-        songs.push(song);
-        const connection = await message.member.voice.channel.join();
-        const isPlaying = connection.dispatcher;
-
-        if (isPlaying) {
-          message.channel.send(
-            `¡La canción ${song.title} se ha añadido a la cola, senpai! :peach:`
-          );
-        } else {
-          message.channel.send(
-            `¡La canción ${song.title} se ha añadido a la cola, senpai y empezó a sonar! :peach:`
-          );
-
-          play(connection, songs, message);
-        }
+        prePlay(song, message);
       }
     }
   },
@@ -194,7 +196,7 @@ module.exports = {
 const play = async (connection, songs, message) => {
   const dispatcher = connection
     .play(ytdl(songs[0].url, { filter: "audioonly", volume: 20 / 100 }))
-    .on("finish", () => {
+    .on("finish", async () => {
       console.log("Terminó, la que sigue!");
       // Deletes the finished song from the queue
       songs.shift();
@@ -202,36 +204,92 @@ const play = async (connection, songs, message) => {
         return message.channel.send(
           "¡Ya no hay canciones, senpai! :pleading_face:"
         );
-      message.channel.send(
-        `¡Estás escuchando ${songs[0].title}, senpai! :smile:`
+      const songInfo = await ytdl.getInfo(songs[0].url);
+
+      const msg = await createMessage(
+        `${songs[0].title}`,
+        (songInfo.videoDetails.thumbnail.thumbnails[4])
+        ? songInfo.videoDetails.thumbnail.thumbnails[4].url
+        : songInfo.videoDetails.thumbnail.thumbnails[3].url,
+          
+        message.author.displayAvatarURL({
+          format: "png",
+          dynamic: true,
+          size: 256,
+        }),
+        songs.length > 1
+          ? songs[1].title
+          : "No hay más canciones en la cola, senpai :(",
+        songInfo.videoDetails.author.name,
+        songs[0].url
       );
+
+      message.channel.send(msg);
+
       play(connection, songs, message);
     })
     .on("error", (error) => {
+      message.channel.send(
+        `¡Parece que hubo un error senpai :(. Inténtalo de nuevo.! :smile:`
+      );
       console.error(error);
     });
   dispatcher.setVolumeLogarithmic(20 / 100);
 };
 
 const prePlay = async (choice, message) => {
-  const songInfo = await ytdl.getInfo(choice);
-  const song = {
-    title: songInfo.videoDetails.title,
-    url: songInfo.videoDetails.video_url,
-  };
-  songs.push(song);
+ 
   const connection = await message.member.voice.channel.join();
   const isPlaying = connection.dispatcher;
-
+  songs.push(choice);
+  console.log("Esto es la cola: ", songs);
   if (isPlaying) {
     message.channel.send(
-      `¡La canción ${song.title} se ha añadido a la cola, senpai! :peach:`
+      `¡La canción ${choice.title} se ha añadido a la cola, senpai! :peach:`
     );
   } else {
-    message.channel.send(
-      `¡La canción ${song.title} se ha añadido a la cola, senpai y empezó a sonar! :peach:`
+    const songInfo = await ytdl.getInfo(songs[0].url);
+    
+    const msg = await createMessage(
+      `${choice.title}`,
+      (songInfo.videoDetails.thumbnail.thumbnails[4])
+      ? songInfo.videoDetails.thumbnail.thumbnails[4].url
+      : songInfo.videoDetails.thumbnail.thumbnails[3].url,
+      message.author.displayAvatarURL({
+        format: "png",
+        dynamic: true,
+        size: 256,
+      }),
+      songs.length > 1
+        ? songs[1].title
+        : "No hay más canciones en la cola, senpai :(",
+      songInfo.videoDetails.author.name,
+      songs[0].url
     );
+    message.channel.send(msg);
 
     play(connection, songs, message);
   }
 };
+
+const createMessage = async (
+  desc,
+  img,
+  urlAvatar,
+  nextSong,
+  authorSong,
+  urlSong
+) => {
+ 
+  const messageem1 = new Discord.MessageEmbed()
+    .setAuthor(authorSong)
+    .setColor("#ff0000")
+    .setThumbnail(urlAvatar)
+    .setTitle(`${desc}:smile: :black_heart:`)
+    .setURL(urlSong)
+    .setImage(img)
+    .addField(`Siguiente canción :black_heart:`, `> ***${nextSong}***`)
+    .setTimestamp();
+
+  return messageem1;
+}; //Aqui puedo poner el tumbnail del video de yotuube

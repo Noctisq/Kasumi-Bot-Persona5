@@ -9,9 +9,9 @@ module.exports = {
 
     await message.member.voice.channel.join();
 
-    console.log(songs);
+    console.log("Antes la cola: ",songs);
     songs.length = 0;
-    console.log(songs);
+    console.log("después la cola: ", songs);
     await message.reply("La cola se reinició, senpai :black_heart:");
   },
 };

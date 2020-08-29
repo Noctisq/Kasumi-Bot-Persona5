@@ -8,15 +8,15 @@ let prefix = process.env.PREFIX;
 let token = process.env.TOKEN;
 bot.commands = new Discord.Collection();
 
-mongoose.connect(
-  `mongodb+srv://Noctis:${process.env.DBPASSWORD}@steamdb.gs3i1.mongodb.net/${process.env.DBNAME}?retryWrites=true&w=majority`,
-  (err) => {
-    if (err) {
-      return console.log("error", err);
-    }
-    console.log("Conectado a la base de datos");
-  }
-);
+// mongoose.connect(
+//   `mongodb+srv://Noctis:${process.env.DBPASSWORD}@steamdb.gs3i1.mongodb.net/${process.env.DBNAME}?retryWrites=true&w=majority`,
+//   (err) => {
+//     if (err) {
+//       return console.log("error", err);
+//     }
+//     console.log("Conectado a la base de datos");
+//   }
+// );
 
 process.on("unhandledRejection", (error) => {
   console.log("este es el error: ", error);
@@ -39,8 +39,7 @@ bot.on("ready", () => {
 });
 
 bot.on("message", (message) => {
-  console.log("Es mensaje del bot? ", message.author.bot);
-
+  
   if (message.author.bot) {
     if (
       message.channel.messages.cache.some((elem) =>
@@ -89,7 +88,7 @@ bot.on("message", (message) => {
     }
   }
   timestamps.set(message.author.id, now);
-  setTimeosut(() => timestamps.delete(message.author.id), cooldownAmount);
+  setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
   try {
     command.execute(message, args);
   } catch (err) {
