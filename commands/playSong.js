@@ -14,7 +14,7 @@ module.exports = {
   description: "Play a song",
   async execute(message, args) {
     const bot = require("../index");
-   
+
     if (!message.member.voice.channel)
       return message.channel.send("No estás en ningún chat de voz, senpai :c");
     if (args.length == 0)
@@ -151,8 +151,9 @@ module.exports = {
       });
     } else {
       if (args[0].includes("list=")) {
-        ytpl(args[0], async function (err, playlist) {
-          if (err) throw err;
+        console.log(args[0]);
+        ytpl(args[0]).then(async (playlist) => {
+          console.log(playlist);
           playlist.items.forEach(async (song) => {
             const song1 = {
               title: song.title,
@@ -178,14 +179,13 @@ module.exports = {
         });
       } else {
         const songInfo = await ytdl.getInfo(args[0]);
-       
+
         const song = {
           title: songInfo.videoDetails.title,
           url: songInfo.videoDetails.video_url,
-          img:
-            (songInfo.videoDetails.thumbnail.thumbnails[4])
-              ? songInfo.videoDetails.thumbnail.thumbnails[4].url
-              : songInfo.videoDetails.thumbnail.thumbnails[3].url,
+          img: songInfo.videoDetails.thumbnail.thumbnails[4]
+            ? songInfo.videoDetails.thumbnail.thumbnails[4].url
+            : songInfo.videoDetails.thumbnail.thumbnails[3].url,
         };
         prePlay(song, message);
       }
@@ -208,10 +208,10 @@ const play = async (connection, songs, message) => {
 
       const msg = await createMessage(
         `${songs[0].title}`,
-        (songInfo.videoDetails.thumbnail.thumbnails[4])
-        ? songInfo.videoDetails.thumbnail.thumbnails[4].url
-        : songInfo.videoDetails.thumbnail.thumbnails[3].url,
-          
+        songInfo.videoDetails.thumbnail.thumbnails[4]
+          ? songInfo.videoDetails.thumbnail.thumbnails[4].url
+          : songInfo.videoDetails.thumbnail.thumbnails[3].url,
+
         message.author.displayAvatarURL({
           format: "png",
           dynamic: true,
@@ -238,7 +238,6 @@ const play = async (connection, songs, message) => {
 };
 
 const prePlay = async (choice, message) => {
- 
   const connection = await message.member.voice.channel.join();
   const isPlaying = connection.dispatcher;
   songs.push(choice);
@@ -249,12 +248,12 @@ const prePlay = async (choice, message) => {
     );
   } else {
     const songInfo = await ytdl.getInfo(songs[0].url);
-    
+
     const msg = await createMessage(
       `${choice.title}`,
-      (songInfo.videoDetails.thumbnail.thumbnails[4])
-      ? songInfo.videoDetails.thumbnail.thumbnails[4].url
-      : songInfo.videoDetails.thumbnail.thumbnails[3].url,
+      songInfo.videoDetails.thumbnail.thumbnails[4]
+        ? songInfo.videoDetails.thumbnail.thumbnails[4].url
+        : songInfo.videoDetails.thumbnail.thumbnails[3].url,
       message.author.displayAvatarURL({
         format: "png",
         dynamic: true,
@@ -280,7 +279,6 @@ const createMessage = async (
   authorSong,
   urlSong
 ) => {
- 
   const messageem1 = new Discord.MessageEmbed()
     .setAuthor(authorSong)
     .setColor("#ff0000")
