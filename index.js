@@ -14,9 +14,12 @@ const dbl = new DBL(
 const { songs } = require("./commands/playSong");
 const { config } = require("dotenv/types");
 const app = express();
+const cors = require("cors");
+
+app.use(cors());
 
 let prefix = process.env.PREFIX;
-let token =  process.env.TOKEN;
+let token = process.env.TOKEN;
 
 app.set("view engine", "ejs");
 app.use(bodyParser.json());
@@ -112,7 +115,7 @@ const router = express.Router();
 app.use("/kasumi", router);
 
 app.listen(process.env.PORT || 4000, function () {
-  console.log("Escuchando peticiones en el puerto:", 4000);
+  console.log("Escuchando peticiones en el puerto:", process.env.PORT || 4000);
 });
 
 //Rutas para la navegación
@@ -143,13 +146,12 @@ router.get("/resume", async function (req, res) {
 });
 
 router.get("/getQueue", async function (req, res) {
-  
   res.send(songs);
 });
 router.post("/addSong", async function (req, res) {
-  console.log("olv si llegue", req.body.song)
+  console.log("olv si llegue", req.body.song);
   songs.push(req.body.song);
- 
+
   res.sendStatus(200);
 });
 router.post("/searchMusic", async function (req, res) {
