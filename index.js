@@ -12,7 +12,6 @@ const dbl = new DBL(
   bot
 );
 const { songs } = require("./commands/playSong");
-const { config } = require("dotenv/types");
 const app = express();
 const cors = require("cors");
 
