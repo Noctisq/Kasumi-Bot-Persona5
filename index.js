@@ -2,21 +2,26 @@ require("dotenv").config();
 const fs = require("fs");
 const Discord = require("discord.js");
 const bot = new Discord.Client();
-const mongoose = require("mongoose");
+const express = require("express");
+const bodyParser = require("body-parser");
+const DBL = require("dblapi.js");
+const ytdl = require("ytdl-core");
+const ytsr = require("ytsr");
+const dbl = new DBL(
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjczNDg3NDg4MzE4NzUzOTk3OCIsImJvdCI6dHJ1ZSwiaWF0IjoxNjAyMjA2MDY3fQ.Z0OWhJYyylH_RtOhLqiJMCuk-DbrSVGGVULT6Vi8-jg",
+  bot
+);
+const { songs } = require("./commands/playSong");
+const { config } = require("dotenv/types");
+const app = express();
 
 let prefix = process.env.PREFIX;
-let token = process.env.TOKEN;
-bot.commands = new Discord.Collection();
+let token =  process.env.TOKEN;
 
-// mongoose.connect(
-//   `mongodb+srv://Noctis:${process.env.DBPASSWORD}@steamdb.gs3i1.mongodb.net/${process.env.DBNAME}?retryWrites=true&w=majority`,
-//   (err) => {
-//     if (err) {
-//       return console.log("error", err);
-//     }
-//     console.log("Conectado a la base de datos");
-//   }
-// );
+app.set("view engine", "ejs");
+app.use(bodyParser.json());
+
+bot.commands = new Discord.Collection();
 
 process.on("unhandledRejection", (error) => {
   console.log("este es el error: ", error);
@@ -35,11 +40,14 @@ const cooldowns = new Discord.Collection();
 
 bot.on("ready", () => {
   console.info(`Iniciando a ${bot.user.tag}!`);
+
+  setInterval(() => {
+    dbl.postStats(bot.guilds.size);
+  }, 180000);
   module.exports = bot;
 });
 
 bot.on("message", (message) => {
-  
   if (message.author.bot) {
     if (
       message.channel.messages.cache.some((elem) =>
@@ -95,19 +103,81 @@ bot.on("message", (message) => {
     console.log(err);
     message.reply("Algo salió mal, perdóname senpai :(!");
   }
-
-  //   if (message.content === `${prefix}server`) {
-  //     message.channel.send(
-  //       `Bienvenidos a: ${message.guild.name}\nTotal de miembros: ${message.guild.memberCount}`
-  //     );
-  //   } else if (command === "args-info") {
-  //     if (!args.length) {
-  //       return message.channel.send(
-  //         `No me diste algo que buscar :(, ${message.author}!`
-  //       );
-  //     }
-  //     message.channel.send(`Nombre del comando: ${command}\nArgumentos: ${args}`);
-  //   }
 });
 
 bot.login(token);
+//Mobile
+
+const router = express.Router();
+app.use("/kasumi", router);
+
+app.listen(process.env.PORT || 4000, function () {
+  console.log("Escuchando peticiones en el puerto:", 4000);
+});
+
+//Rutas para la navegación
+
+router.get("/skip", async function (req, res) {
+  const voiceChannel = await bot.voice.connections.first(1);
+
+  const dispatcher = voiceChannel[0].dispatcher;
+
+  dispatcher.emit("finish");
+  res.sendStatus(200);
+});
+
+router.get("/pause", async function (req, res) {
+  const voiceChannel = await bot.voice.connections.first(1);
+
+  const dispatcher = voiceChannel[0].dispatcher;
+  dispatcher.pause();
+  res.sendStatus(200);
+});
+
+router.get("/resume", async function (req, res) {
+  const voiceChannel = await bot.voice.connections.first(1);
+
+  const dispatcher = voiceChannel[0].dispatcher;
+  dispatcher.resume();
+  res.sendStatus(200);
+});
+
+router.get("/getQueue", async function (req, res) {
+  
+  res.send(songs);
+});
+router.post("/addSong", async function (req, res) {
+  console.log("olv si llegue", req.body.song)
+  songs.push(req.body.song);
+ 
+  res.sendStatus(200);
+});
+router.post("/searchMusic", async function (req, res) {
+  ytsr.getFilters(req.body.search, function (err, filters) {
+    filter = filters.get("Type").find((o) => o.name === "Video");
+    ytsr.getFilters(filter.ref, function (err, filters) {
+      var options = {
+        limit: 20,
+        nextpageRef: filter.ref,
+      };
+      ytsr(req.body.search, options, async function (err, searchResults) {
+        let boardSongs = [];
+
+        let cont = 1;
+
+        searchResults.items.forEach((item) => {
+          boardSongs.push({
+            id: cont,
+            title: item.title,
+            url: item.link,
+            img: item.thumbnail,
+            author: item.author.name,
+          });
+          cont++;
+        });
+
+        res.send(boardSongs);
+      });
+    });
+  });
+});
