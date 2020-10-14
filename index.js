@@ -1,4 +1,3 @@
-
 const fs = require("fs");
 const Discord = require("discord.js");
 const bot = new Discord.Client();
@@ -50,6 +49,7 @@ bot.on("ready", () => {
 });
 
 bot.on("message", (message) => {
+  
   if (message.author.bot) {
     if (
       message.channel.messages.cache.some((elem) =>
@@ -153,6 +153,7 @@ router.post("/addSong", async function (req, res) {
 
   res.sendStatus(200);
 });
+
 router.post("/searchMusic", async function (req, res) {
   ytsr.getFilters(req.body.search, function (err, filters) {
     filter = filters.get("Type").find((o) => o.name === "Video");

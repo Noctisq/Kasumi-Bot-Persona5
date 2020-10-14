@@ -7,9 +7,10 @@ module.exports = {
         return message.channel.send(
           "No estás en ningún canal de voz, senpai :c"
         );
-      const connection = await message.member.voice.channel.join();
-      const dispatcher = connection.dispatcher;
-      dispatcher.emit('finish');
+      const voiceChannel = await bot.voice.connections.first(1);
+
+      const dispatcher = voiceChannel[0].dispatcher;
+      dispatcher.emit("finish");
     } else {
       message.reply(
         "Únete a un canal de voz primero y después ejecuta el mismo comando :heart:"
