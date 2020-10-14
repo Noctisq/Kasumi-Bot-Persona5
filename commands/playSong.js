@@ -179,13 +179,14 @@ module.exports = {
         });
       } else {
         const songInfo = await ytdl.getInfo(args[0]);
-
+        console.log(songInfo.videoDetails);
         const song = {
           title: songInfo.videoDetails.title,
           url: songInfo.videoDetails.video_url,
           img: songInfo.videoDetails.thumbnail.thumbnails[4]
             ? songInfo.videoDetails.thumbnail.thumbnails[4].url
             : songInfo.videoDetails.thumbnail.thumbnails[3].url,
+          duration: songInfo.videoDetails.lengthSeconds
         };
         prePlay(song, message);
       }
