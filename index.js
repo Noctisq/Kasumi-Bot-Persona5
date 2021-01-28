@@ -17,11 +17,7 @@ const cors = require("cors");
 app.use(cors());
 
 let prefix = "kz";
-let token =
-  process.env.TOKEN ||
-  "NzM0ODc0ODgzMTg3NTM5OTc4.XxYDkQ.QodMqdw2rCPSINCzVAC4y3Bnhao";
-
-app.set("view engine", "ejs");
+let token = process.env.TOKEN || app.set("view engine", "ejs");
 app.use(bodyParser.json());
 
 bot.commands = new Discord.Collection();
@@ -71,7 +67,6 @@ bot.on("guildCreate", (guild) => {
 });
 
 bot.on("message", (message) => {
-  
   if (message.author.bot) {
     if (
       message.channel.messages.cache.some((elem) =>
