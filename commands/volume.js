@@ -9,7 +9,7 @@ module.exports = {
         "No te olvides de poner el volumen. Senpai tan pendejo :heart:"
       );
     
-    if(message.author.username == "mepicalacola"){
+    if(message.author.username == "Nezuko"){
       return message.channel.send(
         "Chingas a tu puta madre senpai, tú no puedes hacer eso :3:heart:"
       );

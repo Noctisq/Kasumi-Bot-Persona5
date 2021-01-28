@@ -7,6 +7,7 @@ module.exports = {
   name: "help",
   description: "Info",
   async execute(message) {
+    console.log("holi")
     const messageem1 = new Discord.MessageEmbed()
       .setColor("#FF0000")
       .setTitle("Información general")

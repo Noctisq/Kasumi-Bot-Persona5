@@ -16,8 +16,10 @@ const cors = require("cors");
 
 app.use(cors());
 
-let prefix = process.env.PREFIX;
-let token = process.env.TOKEN;
+let prefix = "kz";
+let token =
+  process.env.TOKEN ||
+  "NzM0ODc0ODgzMTg3NTM5OTc4.XxYDkQ.QodMqdw2rCPSINCzVAC4y3Bnhao";
 
 app.set("view engine", "ejs");
 app.use(bodyParser.json());
@@ -36,6 +38,7 @@ for (const file of commandFiles) {
   const command = require(`./commands/${file}`);
   bot.commands.set(command.name, command);
 }
+
 //Ver nombre del bot
 const cooldowns = new Discord.Collection();
 
@@ -45,7 +48,26 @@ bot.on("ready", () => {
   setInterval(() => {
     dbl.postStats(bot.guilds.size);
   }, 180000);
+
+  let jsonGuilds = [];
+  bot.guilds.cache.forEach((guild) => {
+    jsonGuilds.push({
+      idGuild: guild.id,
+      Songs: [],
+    });
+  });
+
+  fs.writeFile("guilds.json", JSON.stringify(jsonGuilds), "utf8", (err) => {
+    if (err) {
+      console.log(err);
+    }
+    console.log("created");
+  });
   module.exports = bot;
+});
+
+bot.on("guildCreate", (guild) => {
+  console.log("createdGuild", guild.id);
 });
 
 bot.on("message", (message) => {
