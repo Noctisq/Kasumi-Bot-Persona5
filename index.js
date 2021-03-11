@@ -2,10 +2,9 @@ const fs = require("fs");
 const Discord = require("discord.js");
 const bot = new Discord.Client();
 const express = require("express");
-const bodyParser = require("body-parser");
 const DBL = require("dblapi.js");
-const ytdl = require("ytdl-core");
 const ytsr = require("ytsr");
+require('dotenv').config()
 const dbl = new DBL(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjczNDg3NDg4MzE4NzUzOTk3OCIsImJvdCI6dHJ1ZSwiaWF0IjoxNjAyMjA2MDY3fQ.Z0OWhJYyylH_RtOhLqiJMCuk-DbrSVGGVULT6Vi8-jg",
   bot
@@ -16,12 +15,10 @@ const cors = require("cors");
 
 app.use(cors());
 
-let prefix = process.env.PREFIX;
+let prefix = "k";
 let token = process.env.TOKEN;
 
 app.set("view engine", "ejs");
-app.use(bodyParser.json());
-
 bot.commands = new Discord.Collection();
 
 process.on("unhandledRejection", (error) => {
@@ -49,62 +46,60 @@ bot.on("ready", () => {
 });
 
 bot.on("message", (message) => {
-  
+
   if (message.author.bot) {
-    if (
-      message.channel.messages.cache.some((elem) =>
-        elem.content.startsWith("Senpai,")
-      )
-    )
-      if (message.content.startsWith("Senpai,")) {
-        message
-          .react("1️⃣")
-          .then(() => message.react("2️⃣"))
-          .then(() => message.react("3️⃣"))
-          .then(() => message.react("4️⃣"))
-          .then(() => message.react("5️⃣"))
-          .then(() => message.react("❌"))
-          .catch(() => console.error("One of the emojis failed to react."));
+
+    if (message.content.startsWith("Senpai,")) {
+      message
+        .react("1️⃣")
+        .then(() => message.react("2️⃣"))
+        .then(() => message.react("3️⃣"))
+        .then(() => message.react("4️⃣"))
+        .then(() => message.react("5️⃣"))
+        .then(() => message.react("❌"))
+        .catch(() => console.error("One of the emojis failed to react."));
+    }
+  } else {
+    
+    if (!message.content.startsWith(prefix)) return;
+    const args = message.content.slice(prefix.length).trim().split(/ +/);
+    const commandName = args.shift().toLowerCase();
+
+    if (!bot.commands.has(commandName)) {
+      return message.reply("Parece que no existe este comando, senpai :c");
+    }
+    const command = bot.commands.get(commandName);
+    if (!cooldowns.has(command.name)) {
+      cooldowns.set(command.name, new Discord.Collection());
+    }
+
+    const now = Date.now();
+    const timestamps = cooldowns.get(command.name);
+    const cooldownAmount = (command.cooldown || 3) * 1000;
+
+    if (timestamps.has(message.author.id)) {
+      const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
+
+      if (now < expirationTime) {
+        const timeLeft = (expirationTime - now) / 1000;
+        return message.reply(
+          `Espera ${timeLeft.toFixed(
+            1
+          )} segundos más antes de utilizar el comando \`${command.name
+          }\`, senpai :heart: .`
+        );
       }
-  }
-  if (!message.content.startsWith(prefix)) return;
-  const args = message.content.slice(prefix.length).trim().split(/ +/);
-  const commandName = args.shift().toLowerCase();
-
-  if (!bot.commands.has(commandName)) {
-    return message.reply("Parece que no existe este comando, senpai :c");
-  }
-  const command = bot.commands.get(commandName);
-  if (!cooldowns.has(command.name)) {
-    cooldowns.set(command.name, new Discord.Collection());
-  }
-
-  const now = Date.now();
-  const timestamps = cooldowns.get(command.name);
-  const cooldownAmount = (command.cooldown || 3) * 1000;
-
-  if (timestamps.has(message.author.id)) {
-    const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
-
-    if (now < expirationTime) {
-      const timeLeft = (expirationTime - now) / 1000;
-      return message.reply(
-        `Espera ${timeLeft.toFixed(
-          1
-        )} segundos más antes de utilizar el comando \`${
-          command.name
-        }\`, senpai :heart: .`
-      );
+    }
+    timestamps.set(message.author.id, now);
+    setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+    try {
+      command.execute(message, args);
+    } catch (err) {
+      console.log(err);
+      message.reply("Algo salió mal, perdóname senpai :(!");
     }
   }
-  timestamps.set(message.author.id, now);
-  setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
-  try {
-    command.execute(message, args);
-  } catch (err) {
-    console.log(err);
-    message.reply("Algo salió mal, perdóname senpai :(!");
-  }
+
 });
 
 bot.login(token);
