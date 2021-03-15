@@ -3,6 +3,7 @@ const Discord = require("discord.js");
 const bot = new Discord.Client();
 const express = require("express");
 const DBL = require("dblapi.js");
+
 const ytsr = require("ytsr");
 require('dotenv').config()
 const dbl = new DBL(
@@ -14,6 +15,7 @@ const app = express();
 const cors = require("cors");
 
 app.use(cors());
+app.use(express.json());
 
 let prefix = "k";
 let token = process.env.TOKEN;
@@ -60,7 +62,7 @@ bot.on("message", (message) => {
         .catch(() => console.error("One of the emojis failed to react."));
     }
   } else {
-    
+
     if (!message.content.startsWith(prefix)) return;
     const args = message.content.slice(prefix.length).trim().split(/ +/);
     const commandName = args.shift().toLowerCase();
@@ -144,37 +146,36 @@ router.get("/getQueue", async function (req, res) {
 });
 router.post("/addSong", async function (req, res) {
   console.log("olv si llegue", req.body.song);
-  songs.push(req.body.song);
+  songs.push(req.body.song.item);
 
   res.sendStatus(200);
 });
 
 router.post("/searchMusic", async function (req, res) {
-  ytsr.getFilters(req.body.search, function (err, filters) {
-    filter = filters.get("Type").find((o) => o.name === "Video");
-    ytsr.getFilters(filter.ref, function (err, filters) {
-      var options = {
-        limit: 20,
-        nextpageRef: filter.ref,
-      };
-      ytsr(req.body.search, options, async function (err, searchResults) {
-        let boardSongs = [];
+  console.log(req.body);
+  
+  let search = req.body.search.toString().replace(/,/g, " ");
+  const filters1 = await ytsr.getFilters(search);
+  const filter1 = filters1.get('Type').get('Video');
+  const options = {
+    limit: 5,
+  }
+  const searchResults = await ytsr(filter1.url, options);
+  console.log(searchResults.items);
+  let boardSongs = [];
 
-        let cont = 1;
-
-        searchResults.items.forEach((item) => {
-          boardSongs.push({
-            id: cont,
-            title: item.title,
-            url: item.link,
-            img: item.thumbnail,
-            author: item.author.name,
-          });
-          cont++;
-        });
-
-        res.send(boardSongs);
-      });
+  let cont = 1;
+  searchResults.items.forEach((item) => {
+    boardSongs.push({
+      id: cont,
+      title: item.title,
+      url: item.url,
+      img: item.bestThumbnail.url,
+      author: item.author.name
     });
+    cont++;
   });
+
+  res.send(boardSongs);
+
 });
