@@ -157,12 +157,6 @@ module.exports = {
           );
           const thumb = await createSongThumbnail(songs, message);
           message.channel.send(thumb).then((msg) => {
-
-            msg.react('⏸️').then(() => {
-              msg.react('⏺️');
-              msg.react('⏩');
-            });
-
             play(connection, songs, msg);
           });
         }
@@ -198,11 +192,6 @@ const prePlay = async (choice, message) => {
   } else {
     const thumb = await createSongThumbnail(songs, message);
     message.channel.send(thumb).then((msg) => {
-      msg.react('⏸️').then(() => {
-        msg.react('⏺️');
-        msg.react('⏩');
-      });
-
       play(connection, songs, msg);
     });
 
