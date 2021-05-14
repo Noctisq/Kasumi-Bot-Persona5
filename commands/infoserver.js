@@ -9,43 +9,43 @@ module.exports = {
   async execute(message) {
     const messageem1 = new Discord.MessageEmbed()
       .setColor("#FF0000")
-      .setTitle("Información general")
+      .setTitle("General Info")
 
-      .setAuthor("Kasumi V1.0", "https://i.ibb.co/FJqCkLD/Kasumi.gif")
+      .setAuthor("Kasumi V1.1", "https://i.ibb.co/FJqCkLD/Kasumi.gif")
       .setThumbnail("attachment://Kasumi.png")
       .setDescription(
-        "Soy un bot para discord que está en early development, así que por ahora mis funcionalidades están limitadas a reproducir música y a unas cuántas interacciones contigo, senpai. Así que ten un poco de paciencia conmigo :heart:."
+        "I'm a Discord bot that's in early development, so for now my functionality is limited to playing music and a few interactions with you, senpai. So bear a little patience with me :heart:."
       )
       .setTimestamp()
       .setFooter("tqm<3", "https://i.ibb.co/FJqCkLD/Kasumi.gif");
 
     const messageem2 = new Discord.MessageEmbed()
       .setColor("#000000")
-      .setTitle("Comandos")
+      .setTitle("Commands")
 
       
       .setDescription(
-        "Para poder darme una orden tienes que seguir la estructura `ky!<comando>`, siempre que quieras recordarlos puedes usar `ky!help`:heart:"
+        "To give an order you have to follow the structure `k <command>`, whenever you want to remember them you can use `k help`:heart:"
       )
 
       .addFields({
-        name: "Acciones: ",
+        name: "Actions: ",
         value:
-          "\n> `ky!play <url o nombre> ` Reproduzco una canción. :heart:\n> \n> `ky!stop ` Detengo todas mis acciones. :heart:\n> `ky!love` Te doy amor. :heart:\n> `ky!pause` Pauso la música canción. :heart:\n> `ky!resume` Reanudo la música :heart:\n> `ky!volume <0-85>` Cambiar el volúmen de la música. :heart:\n> `ky!skip` Saltar canción.:heart:\n> `ky!reset` Limpia la cola de canciones.:heart:\n> `ky!stop` Salgo del chat de voz.:heart:\n> `ky!night` Te doy las buenas noches.:heart:\n\n\n\n",
+          "\n> `k play <url o name> ` I play a song. :heart:\n> \n> `k stop ` i stop being annoying. :heart:\n> `k love` i give you love. :heart:\n> `k pause` I pause the song. :heart:\n> `k resume` Resume music :heart:\n> `k volume <0-85>` Change my volume. :heart:\n> `k skip` Skip Song.:heart:\n> `k reset` Restart queue.:heart:\n> `k night` I say you good night.:heart:\n\n\n\n",
       })
       .setImage("https://i.ibb.co/FJqCkLD/Kasumi.gif")
       .setTimestamp();
 
     const messageem3 = new Discord.MessageEmbed()
       .setColor("#FF0000")
-      .setTitle("Otros")
+      .setTitle("For you")
 
       .setThumbnail("https://i.ibb.co/FJqCkLD/Kasumi.gif")
       .setDescription(
-        "Si quieres realizar tu propio bot y quieres tener como base a Kasumi, puedes dirigirte a su [repositorio](https://github.com/Noctisq/Kasumi-Bot-Persona5) de github. También, si tienes algún problema, puedes levantar un issue en el mismo repositorio."
+        "If you want to make your own bot y and you want to use kasumi as your base you can go to: [repository](https://github.com/Noctisq/Kasumi-Bot-Persona5)"
       )
       .setTimestamp()
-      .setFooter("tqm<3", "https://i.ibb.co/FJqCkLD/Kasumi.gif");
+      .setFooter("ily<3", "https://i.ibb.co/FJqCkLD/Kasumi.gif");
 
     await message.channel.send(messageem1);
     await message.channel.send(messageem2);

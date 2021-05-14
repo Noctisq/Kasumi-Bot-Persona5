@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "@discordjs/opus": "^0.3.2",
+    "@top-gg/sdk": "^3.1.1",
     "cors": "^2.8.5",
     "dblapi.js": "^2.4.1",
     "discord.js": "^12.3.1",

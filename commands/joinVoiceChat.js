@@ -7,7 +7,7 @@ module.exports = {
            
             
           } else {
-            message.reply('Únete a un chat de voz primero y después ejecuta el mismo comando :heart:');
+            message.reply('Join a voice chat adn try it again :heart:');
           }
 	},
 };

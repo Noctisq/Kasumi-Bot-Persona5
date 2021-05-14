@@ -14,38 +14,15 @@ module.exports = {
   cooldown: 3,
   description: "Play a song",
   async execute(message, args) {
-
+ 
     const bot = require("../index");
-
-
-    bot.on("messageReactionAdd", async (reaction, user) => {
-      const connection = await message.member.voice.channel.join();
-      const dispatcher = connection.dispatcher;
-      if (user.username != "Kasumi") {
-        switch (
-        reaction.emoji.name
-        ) {
-          case "⏩":
-
-            dispatcher.emit('finish');
-            break;
-          case "⏸️":
-            dispatcher.pause();
-            message.reply("Se pausó la música. :relaxed:");
-            break;
-          case "⏺️":
-            dispatcher.resume();
-            message.reply("Reanudando la música, senpai :blush:");
-            break;
-        }
-      }
-    });
+  
 
     if (!message.member.voice.channel)
-      return message.channel.send("No estás en ningún chat de voz, senpai :c");
+      return message.channel.send("You're not in a channel, senpai :c");
     if (args.length == 0)
       return message.channel.send(
-        "¿Qué canción reproduzco?, no seas baboso senpai."
+        "Which song should i play?, don't be silly senpai."
       );
 
     if (
@@ -54,7 +31,7 @@ module.exports = {
       )
     ) {
       return message.reply(
-        `Primero elige una canción de la anterior búsqueda, senpai:black_heart:`
+        `Pick a song from the options i send earlier, senpai :black_heart:`
       );
     }
 
@@ -68,7 +45,6 @@ module.exports = {
           limit: 5,
         }
         const searchResults = await ytsr(filter1.url, options);
-        console.log(searchResults.items);
         let boardSongs = [];
         let show = "";
         let cont = 1;
@@ -89,7 +65,7 @@ module.exports = {
         });
 
         message.channel.send(
-          `Senpai, esto es lo que encontré: ${show} \nElije una de las cinco opciones, senpai :heart:`
+          `Senpai, this is what i found: ${show} \nchoose one, senpai :heart:`
         );
 
         bot.on("messageReactionAdd", async (reaction, user) => {
@@ -113,21 +89,19 @@ module.exports = {
                 sendSongData(reaction.emoji.name, boardSongs[4], message);
                 break;
               case "❌":
-                message.reply("¡Para la otra decidete senpai, senpai! :black_heart:");
+                message.reply("Think before you search, senpai! :black_heart:");
                 break;
             }
             boardSongs = [];
             reaction.message.delete();
           }
         });
-        console.log(boardSongs);
 
       } catch (error) {
         console.log(error);
       }
     } else {
       if (args[0].includes("list=")) {
-        console.log(args[0]);
         const playlist = await ytpl(args[0]);
 
         playlist.items.forEach(async (song) => {
@@ -148,12 +122,12 @@ module.exports = {
 
         if (isPlaying) {
           message.channel.send(
-            `¡La playlist se ha añadido a la cola, senpai! :peach:`
+            `added to queue, senpai! :peach:`
           );
         } else {
 
           message.channel.send(
-            `¡La playlist se ha añadido a la cola, senpai! y empezó a sonar! :peach:`
+            `added to queue, senpai and started playing! :peach:`
           );
           const thumb = await createSongThumbnail(songs, message);
           message.channel.send(thumb).then((msg) => {
@@ -164,7 +138,6 @@ module.exports = {
 
       } else {
         const songInfo = await ytdl.getInfo(args[0]);
-        console.log(songInfo.videoDetails);
         const song = {
           title: songInfo.videoDetails.title,
           url: songInfo.videoDetails.video_url,
@@ -187,7 +160,7 @@ const prePlay = async (choice, message) => {
   console.log("Esto es la cola: ", songs);
   if (isPlaying) {
     message.channel.send(
-      `¡La canción ${choice.title} se ha añadido a la cola, senpai! :peach:`
+      `the song: ${choice.title} was added, senpai! :peach:`
     );
   } else {
     const thumb = await createSongThumbnail(songs, message);
@@ -209,7 +182,7 @@ const play = async (connection, songs, message) => {
       songs.shift();
       if (songs.length == 0)
         return message.channel.send(
-          "¡Ya no hay canciones, senpai! :pleading_face:"
+          "There's no songs, senpai! :pleading_face:"
         );
       const thumb = await createSongThumbnail(songs, message);
       message.channel.send(thumb).then((msg) => {
@@ -223,7 +196,7 @@ const play = async (connection, songs, message) => {
     })
     .on("error", (error) => {
       message.channel.send(
-        `¡Parece que hubo un error senpai :(. Inténtalo de nuevo.! :smile:`
+        `I'm stupid, senpai :(. Should i try again? :smile:`
       );
       console.error(error);
     });
@@ -247,7 +220,7 @@ const createMessage = async (
     .setTitle(`${desc}:smile: :black_heart:`)
     .setURL(urlSong)
     .setImage(img)
-    .addField(`Siguiente canción :black_heart:`, `> ***${nextSong}***`)
+    .addField(`Next song :black_heart:`, `> ***${nextSong}***`)
     .setTimestamp();
 
   return messageem1;
@@ -264,7 +237,7 @@ const createSongThumbnail = (songs, message) => {
     }),
     songs.length > 1
       ? songs[1].title
-      : "No hay más canciones en la cola, senpai :(",
+      : "There's no songs, senpai :(",
     songs[0].author,
     songs[0].url
   );
@@ -272,7 +245,7 @@ const createSongThumbnail = (songs, message) => {
 
 const sendSongData = (emoji, choice, message) => {
   message.channel.send(
-    `Será la opción ${emoji} entonces, senpai! :black_heart:`
+    `It'll be ${emoji}, senpai! :black_heart:`
   );
 
   prePlay(choice, message);

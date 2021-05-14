@@ -2,14 +2,10 @@ const fs = require("fs");
 const Discord = require("discord.js");
 const bot = new Discord.Client();
 const express = require("express");
-const DBL = require("dblapi.js");
-
+const Topgg = require('@top-gg/sdk')
+const api = new Topgg.Api('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjczNDg3NDg4MzE4NzUzOTk3OCIsImJvdCI6dHJ1ZSwiaWF0IjoxNjAyMjA2MDY3fQ.Z0OWhJYyylH_RtOhLqiJMCuk-DbrSVGGVULT6Vi8-jg');
 const ytsr = require("ytsr");
 require('dotenv').config()
-const dbl = new DBL(
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjczNDg3NDg4MzE4NzUzOTk3OCIsImJvdCI6dHJ1ZSwiaWF0IjoxNjAyMjA2MDY3fQ.Z0OWhJYyylH_RtOhLqiJMCuk-DbrSVGGVULT6Vi8-jg",
-  bot
-);
 const { songs } = require("./commands/playSong");
 const app = express();
 const cors = require("cors");
@@ -17,7 +13,7 @@ const cors = require("cors");
 app.use(cors());
 app.use(express.json());
 
-let prefix = "k";
+let prefix = "kt";
 let token = process.env.TOKEN;
 
 app.set("view engine", "ejs");
@@ -40,13 +36,23 @@ const cooldowns = new Discord.Collection();
 
 bot.on("ready", () => {
   console.info(`Iniciando a ${bot.user.tag}!`);
-
+  
   setInterval(() => {
-    dbl.postStats(bot.guilds.size);
-  }, 180000);
+    console.log("updated servers");
+    console.log(bot.guilds.cache.size);
+    api.postStats({
+      serverCount: bot.guilds.cache.size,
+    })
+  }, 180000) // post every 30 minutes
   module.exports = bot;
 });
 
+bot.on('guildMemberSpeaking',(member, speaking)=>{
+  if(speaking.bitfield === 1){
+    const command = bot.commands.get('voice');
+    command.execute(member);
+  }
+});
 bot.on("message", (message) => {
 
   if (message.author.bot) {
@@ -65,6 +71,7 @@ bot.on("message", (message) => {
 
     if (!message.content.startsWith(prefix)) return;
     const args = message.content.slice(prefix.length).trim().split(/ +/);
+    console.log(args);
     const commandName = args.shift().toLowerCase();
 
     if (!bot.commands.has(commandName)) {
