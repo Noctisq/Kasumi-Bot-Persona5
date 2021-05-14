@@ -178,7 +178,7 @@ const play = async (connection, songs, message) => {
     .play(ytdl(songs[0].url, { filter: "audioonly", volume: 20 / 100 }))
     .on("finish", async () => {
       message.delete();
-      console.log("Terminó, la que sigue!");
+      console.log("la que sigue!");
       songs.shift();
       if (songs.length == 0)
         return message.channel.send(
