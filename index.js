@@ -13,7 +13,7 @@ const cors = require("cors");
 app.use(cors());
 app.use(express.json());
 
-let prefix = "kt";
+let prefix = "k";
 let token = process.env.TOKEN;
 
 app.set("view engine", "ejs");

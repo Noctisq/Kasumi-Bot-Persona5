@@ -31,11 +31,18 @@ module.exports = {
                     .map(result => result.alternatives[0].transcript)
                     .join('\n')
                     .toLowerCase();
-                console.log(`Transcription: ${transcription}`);
+                
+                if(transcription.includes("esa no pendeja")){
+                    const bot = require("../index");
+                    const dispatcher = voiceConnection.dispatcher;
+                    dispatcher.emit('finish');
+                    bot.channels.cache.get('766777466995474493').send(`Pues perdón, Senpai tan pendejo. :pleading_face: `);
+                };
+
                 if (transcription.includes("reproduce")) {
                     const args = await transcription.trim().split(/ +/).slice(2);
                     const bot = require("../index");
-                    console.log(args);
+                    
                     try {
                         let search = args.toString().replace(/,/g, " ");
                         const filters1 = await ytsr.getFilters(search);
@@ -105,15 +112,14 @@ const prePlay = async (choice, message) => {
     const isPlaying = connection.dispatcher;
     const bot = require("../index");
     songs.songs.push(choice);
-    console.log("Esto es la cola: ", songs);
     if (isPlaying) {
 
-        bot.channels.cache.get('735398033638031420').send(`the song: ${choice.title} was added, senpai! :peach:`);
+        bot.channels.cache.get('766777466995474493').send(`the song: ${choice.title} was added, senpai! :peach:`);
 
     } else {
         const thumb = await createSongThumbnail(songs.songs, message);
-        bot.channels.cache.get('735398033638031420').send(thumb).then((msg) => {
-            play(connection, songs.songs, msg);
+        bot.channels.cache.get('766777466995474493').send(thumb).then((msg) => {
+            play(connection, songs.songs, message);
         });
 
     }
@@ -121,26 +127,25 @@ const prePlay = async (choice, message) => {
 
 const play = async (connection, songs, message) => {
     const bot = require("../index");
-
     const dispatcher = connection
         .play(ytdl(songs[0].url, { filter: "audioonly", volume: 20 / 100 }))
         .on("finish", async () => {
 
-            message.delete();
             console.log("Terminó, la que sigue!");
             songs.shift();
             if (songs.length == 0)
-                return bot.channels.cache.get('735398033638031420').send(
+                return bot.channels.cache.get('766777466995474493').send(
                     "There's no songs, senpai! :pleading_face:"
-                );
+                ); 
             const thumb = await createSongThumbnail(songs, message);
-            bot.channels.cache.get('735398033638031420').send(thumb).then((msg) => {
-
-                play(connection, songs, msg);
+            const channel = bot.channels.cache.get('766777466995474493');
+            channel.mes
+            bot.channels.cache.get('766777466995474493').send(thumb).then((msg) => {
+                play(connection, songs, message);
             });
         })
         .on("error", (error) => {
-            bot.channels.cache.get('735398033638031420').send(
+            bot.channels.cache.get('766777466995474493').send(
                 `¡I'm stupid, senpai :(. Should i try again? :smile:`
             );
             console.error(error);
@@ -172,10 +177,11 @@ const createMessage = async (
 }; //Aqui puedo poner el tumbnail del video de yotuube
 
 const createSongThumbnail = (songs, message) => {
+    const user = typeof message.author === 'undefined' ? message.user : message.author;
     return createMessage(
         `${songs[0].title}`,
         songs[0].img,
-        message.user.displayAvatarURL({
+        user.displayAvatarURL({
             format: "png",
             dynamic: true,
             size: 256,

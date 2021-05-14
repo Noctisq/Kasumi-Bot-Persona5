@@ -186,11 +186,6 @@ const play = async (connection, songs, message) => {
         );
       const thumb = await createSongThumbnail(songs, message);
       message.channel.send(thumb).then((msg) => {
-        msg.react('⏸️').then(() => {
-          msg.react('⏺️');
-          msg.react('⏩');
-        });
-
         play(connection, songs, msg);
       });
     })
