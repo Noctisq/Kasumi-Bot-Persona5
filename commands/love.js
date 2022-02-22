@@ -1,7 +1,10 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
+
 module.exports = {
-	name: 'love',
-	description: 'Love of kasumi!',
-	execute(message, args) {
-		message.reply("I love you :heart:");
+	data: new SlashCommandBuilder()
+		.setName('love')
+		.setDescription('love from kasumi!'),
+	async execute(interaction) {
+		await interaction.reply('i love you senpai!');
 	},
 };
