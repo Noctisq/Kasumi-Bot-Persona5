@@ -12,10 +12,11 @@ const {
 } = require('@discordjs/voice');
 
 const { MessageActionRow, MessageSelectMenu } = require('discord.js');
+const { search, video_basic_info, stream} = require('play-dl');
 
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { Console } = require("console");
 var songsQeue = [];
+
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('play')
@@ -48,7 +49,7 @@ const makeVoiceConnection = async (interaction, channel, stream) => {
       adapterCreator: interaction.guild.voiceAdapterCreator
     });
   
-    const resource = await createAudioResource(stream, { inputType: StreamType.Arbitrary });
+    const resource = await createAudioResource(stream.stream, { inputType: stream.type });
     const player = await createAudioPlayer();
   
     await playMusic(player, resource, connection, interaction)
@@ -62,20 +63,18 @@ const playMusic = async (player, resource, connection) =>{
   try{
     await player.play(resource);
     await connection.subscribe(player);
-    player.on(AudioPlayerStatus.Idle, () => nextSong(player, connection));
+    player.on(AudioPlayerStatus.Idle, () => nextSong(player, connection, resource));
   }catch(error){
     console.error(error);
   }
   
 }
 
-const nextSong = async (player, connection)=> {
+const nextSong = async (player, connection, resource)=> {
   songsQeue.shift();
   if(songsQeue.length == 0){
     connection.destroy();
   }
-  const stream =  await ytdl(songsQeue[0], { filter: 'audioonly' });
-  const resource = await createAudioResource(stream, { inputType: StreamType.Arbitrary });
   player.play(resource)
 }
 
@@ -85,16 +84,8 @@ const getSong = async (song, interaction, channel) => {
     if(song.includes("www") && songsQeue.length > 0 ){
       return await ytdl(song, { filter: 'audioonly' });
     } 
-
-      const filters1 = await ytsr.getFilters(song);
-      const filter1 = await filters1.get('Type').get('Video');
-
-      const options = {
-        pages: 1,
-        limit: 5
-      }
-      const searchResults = await ytsr(filter1.url, options);
-      await chooseSong(searchResults.items, interaction, channel);
+      const infoVideos = await search(song, { limit : 5 });
+      await chooseSong(infoVideos, interaction, channel);
   } catch (error) {
     console.log(error);
   }
@@ -123,7 +114,6 @@ const chooseSong = async (songs, interaction, channel) => {
   await interactionToSend.reply({ content: 'This is what i found, senpai!', components: [row] });
 
   interactionToSend.client.on('interactionCreate', async interaction => {
-    
     if (!interaction.isSelectMenu()) return;
     if (interaction.customId === 'select') {
       if(songsQeue.length > 0){
@@ -136,8 +126,8 @@ const chooseSong = async (songs, interaction, channel) => {
       songsQeue = songsQeue.concat(interaction.values);
       console.log(songsQeue);
 
-      const stream =  await ytdl(songsQeue[0], { filter: 'audioonly' });
-      await makeVoiceConnection(interactionToSend, channel, stream);
+      const streamToRead =  await stream(songsQeue[0], { quality: 1 });
+      await makeVoiceConnection(interactionToSend, channel, streamToRead);
       await interaction.update({ content: 'Songs Added!', components: [] });
       
       
