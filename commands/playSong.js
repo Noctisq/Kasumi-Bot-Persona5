@@ -1,11 +1,6 @@
-const ytdl = require("ytdl-core");
-const ytsr = require("ytsr");
 const Discord = require("discord.js");
-var ytpl = require("ytpl");
-const fs = require("fs");
 const {
 	AudioPlayerStatus,
-	StreamType,
 	createAudioPlayer,
 	createAudioResource,
 	joinVoiceChannel,
@@ -38,6 +33,8 @@ module.exports = {
     
     
 	},
+  songsData: songsQeue,
+
 };
 
 const makeVoiceConnection = async (interaction, channel, stream) => {
@@ -63,19 +60,28 @@ const playMusic = async (player, resource, connection) =>{
   try{
     await player.play(resource);
     await connection.subscribe(player);
-    player.on(AudioPlayerStatus.Idle, () => nextSong(player, connection, resource));
+    player.on(AudioPlayerStatus.Idle, () => nextSong(player, connection));
   }catch(error){
     console.error(error);
   }
   
 }
 
-const nextSong = async (player, connection, resource)=> {
-  songsQeue.shift();
-  if(songsQeue.length == 0){
-    connection.destroy();
+const nextSong = async (player, connection)=> {
+  try {
+    songsQeue.shift();
+    if(songsQeue.length == 0){
+      connection.destroy();
+    }
+    console.log(songsQeue);
+    const streamToRead =  await stream(songsQeue[0], { quality: 1 });
+    const resource = await createAudioResource(streamToRead.stream, { inputType: streamToRead.type });
+    await player.play(resource);
+  } catch (error) {
+    console.error(error);
   }
-  player.play(resource)
+ 
+  
 }
 
 const getSong = async (song, interaction, channel) => {
@@ -122,17 +128,12 @@ const chooseSong = async (songs, interaction, channel) => {
         await interaction.update({ content: 'Songs Added!', components: [] });
         return;
       }
-
       songsQeue = songsQeue.concat(interaction.values);
-      console.log(songsQeue);
-
       const streamToRead =  await stream(songsQeue[0], { quality: 1 });
       await makeVoiceConnection(interactionToSend, channel, streamToRead);
       await interaction.update({ content: 'Songs Added!', components: [] });
       
-      
     }
-    
   });
   } catch (error) {
     console.error(error);
