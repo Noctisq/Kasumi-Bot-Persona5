@@ -20,7 +20,7 @@
     "express": "^4.18.1",
     "ffmpeg-static": "^4.4.1",
     "libsodium-wrappers": "^0.7.9",
-    "nodemon": "^2.0.16",
+    "nodemon": "^2.0.22",
     "play-dl": "^1.9.4",
     "socket.io": "^4.5.0",
     "ytdl-core": "^4.10.1",
