@@ -1,0 +1,1 @@
+{"version":3,"file":"love.js","sourceRoot":"","sources":["../../src/commands/love.ts"],"names":[],"mappings":";;;AACA,MAAa,WAAW;IAAxB;QACiB,SAAI,GAAY,MAAM,CAAC;QACvB,gBAAW,GAAW,mBAAmB,CAAC;IAM3D,CAAC;IAHO,KAAK,CAAC,OAAO,CAAC,WAAW;QACzB,OAAO,MAAM,WAAW,CAAC,KAAK,CAAC,oBAAoB,CAAC,CAAC;IACzD,CAAC;CACJ;AARD,kCAQC"}
