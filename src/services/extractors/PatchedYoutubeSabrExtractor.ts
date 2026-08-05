@@ -106,16 +106,20 @@ export class PatchedYoutubeSabrExtractor extends BaseExtractor<PatchedYoutubeSab
 
   #innertube: Innertube | null = null;
 
+  // No po_token here — confirmed by direct testing that a cookie from a
+  // logged-in session is sufficient on its own for both search/watch
+  // requests and full SABR streaming. Puppeteer-minted po_tokens turned out
+  // actively harmful in production: on a small VM the mint can time out
+  // outright, and even when it succeeds the resulting po_token+visitor_data
+  // combination has caused server_abr_streaming_url to come back missing
+  // ("No valid URL to decipher") despite the session otherwise being valid.
   async activate(): Promise<void> {
     setupYoutubeJsEvaluator();
 
-    const { poToken, visitorData } = await this.options.poTokenProvider.getToken();
-
+    const cookie = this.options.poTokenProvider.getCookie();
     this.#innertube = await Innertube.create({
-      po_token: poToken,
-      visitor_data: visitorData,
       cache: new UniversalCache(true, '/tmp/.cache'),
-      ...(this.options.poTokenProvider.getCookie() ? { cookie: this.options.poTokenProvider.getCookie() } : {}),
+      ...(cookie ? { cookie } : {}),
     });
 
     this.protocols = ['ytsearch', 'youtube'];
@@ -203,26 +207,16 @@ export class PatchedYoutubeSabrExtractor extends BaseExtractor<PatchedYoutubeSab
 
     const sabrFormats = playerResponse.streaming_data?.adaptive_formats.map((format) => buildSabrFormat(format as never)) || [];
 
-    // SabrStream's own "stream protection status" check (googlevideo's
-    // SabrStream.js) stays at ATTESTATION_PENDING and silently withholds
-    // media segments — no error at first, just no new data — unless the
-    // po_token here is minted specifically for THIS video, not just our
-    // session identity. Confirmed by testing: the session-level token
-    // (used above, in activate()) gets search/watch requests working, but
-    // streaming still eventually hits "No media parts or protocol updates
-    // received from server" without a content-bound one here.
-    let poToken: string | undefined;
-    try {
-      poToken = await this.options.poTokenProvider.getTokenForVideo(videoId);
-    } catch (error) {
-      console.warn('[PatchedYoutubeSabrExtractor] Failed to get per-video PO token for streaming:', error);
-    }
-
+    // No per-video po_token — confirmed by direct testing (a full 5-minute
+    // continuous stream with zero po_token, cookie only) that the cookie's
+    // attestation alone is enough to keep SabrStream out of
+    // ATTESTATION_PENDING. Minting one here used to mean launching a fresh
+    // Puppeteer/Chrome for every single track, which is exactly what made
+    // playback unreliable on a small VM.
     const serverAbrStream = new SabrStream({
       formats: sabrFormats,
       serverAbrStreamingUrl,
       videoPlaybackUstreamerConfig,
-      ...(poToken ? { poToken } : {}),
       clientInfo: {
         clientName: Number.parseInt(
           Constants.CLIENT_NAME_IDS[this.#innertube?.session.context.client.clientName as keyof typeof Constants.CLIENT_NAME_IDS],
