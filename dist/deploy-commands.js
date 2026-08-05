@@ -6,8 +6,7 @@ require("dotenv/config");
 const fs = require('fs');
 const commands = [];
 const commandFiles = fs.readdirSync('src/commands').filter(file => file.endsWith('.ts'));
-const clientId = '941823169755488397';
-const guildId = '734875244623560805';
+const clientId = process.env.CLIENT_ID;
 for (const file of commandFiles) {
     const command = require(`./commands/${file.replace(/\.ts$/, '')}`);
     const commandInstance = Object.values(command)[0];
@@ -17,7 +16,9 @@ const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 (async () => {
     try {
         console.log('Started refreshing application (/) commands.');
-        await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands });
+        const existing = await rest.get(Routes.applicationCommands(clientId));
+        const entryPointCommands = existing.filter(c => c.type === 4); // ENTRY_POINT (Activity launch command)
+        await rest.put(Routes.applicationCommands(clientId), { body: [...entryPointCommands, ...commands] });
         console.log('Successfully reloaded application (/) commands.');
     }
     catch (error) {
