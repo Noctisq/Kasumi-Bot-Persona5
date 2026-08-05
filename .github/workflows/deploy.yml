@@ -8,15 +8,15 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      # Build happens ON the Oracle VM (ARM64/Ampere A1), not on this
-      # (x86_64) runner — @discordjs/opus and friends have native bindings
-      # that must be compiled for the machine that actually runs them.
+      # Build happens ON the VM, not on this runner — @discordjs/opus and
+      # friends have native bindings that must be compiled for the machine
+      # that actually runs them.
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ secrets.ORACLE_HOST }}
-          username: ${{ secrets.ORACLE_USER }}
-          key: ${{ secrets.ORACLE_SSH_KEY }}
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
             set -e
             cd ~/Kasumi-Bot-Persona5
