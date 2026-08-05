@@ -190,15 +190,6 @@ export class PatchedYoutubeSabrExtractor extends BaseExtractor<PatchedYoutubeSab
   async #startStream(videoId: string, outputStream: PassThrough): Promise<void> {
     const playerResponse = await this.#makePlayerRequest(videoId);
 
-    console.error(
-      '[DEBUG]',
-      'videoId=', videoId,
-      'hasServerAbrUrl=', !!playerResponse.streaming_data?.server_abr_streaming_url,
-      'hasPlayer=', !!this.#innertube?.session.player,
-      'signatureTimestamp=', this.#innertube?.session.player?.signature_timestamp,
-      'playabilityStatus=', JSON.stringify((playerResponse as unknown as { playability_status?: unknown }).playability_status)
-    );
-
     const serverAbrStreamingUrl = await this.#innertube?.session.player?.decipher(
       playerResponse.streaming_data?.server_abr_streaming_url
     );
