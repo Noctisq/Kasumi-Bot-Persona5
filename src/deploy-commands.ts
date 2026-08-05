@@ -5,8 +5,8 @@ const fs = require('fs');
 import { Command } from './interface/Command.interface';
 const commands = [];
 const commandFiles = fs.readdirSync('src/commands').filter(file => file.endsWith('.ts'));
-const clientId = '734874883187539978';
-const guildId = '731727908619681842';
+const clientId = '941823169755488397';
+const guildId = '734875244623560805';
 for (const file of commandFiles) {
 	const command: Command = require(`./commands/${file.replace(/\.ts$/, '')}`);
 	const commandInstance = Object.values(command)[0]

@@ -1,34 +1,33 @@
-import { Bot } from './Classes/Bot'
-import * as fs from 'fs';
-import { Command } from './interface/Command.interface';
-import 'dotenv/config'
-const commandFiles = fs.readdirSync('src/commands').filter(file => file.endsWith('.ts'));
-const botInstance = Bot.getInstance();
+import { Client, GatewayIntentBits } from 'discord.js';
+import { CommandRegistry } from './Classes/CommandRegistry';
+import { DiscordPlayerMusicService } from './services/DiscordPlayerMusicService';
+import { PlayCommand } from './commands/play';
+import { LoveCommand } from './commands/love';
+import 'dotenv/config';
 
-for (const file of commandFiles) {
-    const command: Command = require(`./commands/${file.replace(/\.ts$/, '')}`);
-    botInstance.createCommandsCollection();
-    const commandInstance = Object.values(command)[0]
-    botInstance.setCommandsCollection(new commandInstance(botInstance.getClient()));
+async function bootstrap() {
+    const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
+    const musicPlayer = await DiscordPlayerMusicService.create(client);
+
+    const commands = new CommandRegistry();
+    commands.register(new PlayCommand(musicPlayer));
+    commands.register(new LoveCommand());
+
+    client.once('ready', () => console.info(`Iniciando a ${client.user.tag}!`));
+    client.on('interactionCreate', async interaction => {
+        if (!interaction.isChatInputCommand()) return;
+        const command = commands.get(interaction.commandName);
+        if (!command) return;
+
+        try {
+            await command.execute(interaction);
+        } catch (error) {
+            console.error(error);
+            await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+        }
+    });
+
+    await client.login(process.env.TOKEN);
 }
 
-botInstance.getClient().once("ready", () => {
-    console.info(`Iniciando a ${botInstance.getClient().user.tag}!`);
-});
-
-botInstance.getClient().on('interactionCreate', async interaction => {
-    if (!interaction.isCommand()) return;
-    const command = botInstance.getCommandFromCollection(interaction.commandName);
-    console.log(command);
-    if (!command) return;
-
-    try {
-        await command.execute(interaction);
-    } catch (error) {
-        console.error(error);
-        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-    }
-});
-
-
-botInstance.loginBot(process.env.TOKEN)
+bootstrap().catch(console.error);

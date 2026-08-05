@@ -4,11 +4,9 @@ exports.PlayCommand = void 0;
 const v10_1 = require("discord-api-types/v10");
 const builders_1 = require("@discordjs/builders");
 const SelectMenuHandler_1 = require("../Classes/SelectMenuHandler");
-const ChannelConnection_1 = require("../Classes/ChannelConnection");
-const AudioPlayer_1 = require("../Classes/AudioPlayer");
-const { search } = require('play-dl');
 class PlayCommand {
-    constructor() {
+    constructor(musicPlayer) {
+        this.musicPlayer = musicPlayer;
         this.name = 'play';
         this.description = 'Search a song or paste a youtube link!';
         this.options = [
@@ -21,53 +19,41 @@ class PlayCommand {
         ];
     }
     async execute(interaction) {
+        if (!this.musicPlayer) {
+            throw new Error('PlayCommand.execute called without a MusicPlayer — this should never happen outside deploy-commands.ts');
+        }
+        const musicPlayer = this.musicPlayer;
         try {
-            const user = await interaction.member.fetch();
-            const channel = await user.voice.channel;
+            const user = await interaction.guild.members.fetch(interaction.user.id);
+            const channel = user.voice.channel;
             if (!channel)
                 return interaction.reply("You're not on a Voice Channel, senpai. Give me a break.");
-            const audioPlayerInstance = AudioPlayer_1.AudioPlayer.getInstance();
-            const audioPlayerHasNotBeenInitialized = () => Object.keys(audioPlayerInstance).length === 0;
-            const voiceChannelConnection = await new ChannelConnection_1.ChannelConnection().makeVoiceConnection(channel, interaction);
-            const searchResults = await this.getQueryResults(interaction);
-            const selectMenu = await this.printOptionsFound(searchResults, interaction, channel);
-            const songsToAdd = await selectMenu.start();
+            const songToSearch = interaction.options.getString('song_name', true);
+            const tracks = await musicPlayer.search(songToSearch, interaction.user);
+            if (tracks.length === 0) {
+                return interaction.reply("Couldn't find anything for that, senpai. Try another search, okay?");
+            }
+            const selectMenu = await this.printOptionsFound(tracks, interaction);
+            const selectedUrls = await selectMenu.start();
             await selectMenu.interaction.delete();
-            if (audioPlayerHasNotBeenInitialized()) {
-                audioPlayerInstance.initialize(songsToAdd, voiceChannelConnection);
-                audioPlayerInstance.playMusic();
-                return await interaction.channel.send("Starting Songs!");
+            if (!selectedUrls || selectedUrls.length === 0) {
+                return interaction.channel.send('Nothing selected, senpai.');
             }
-            const areSongsInQueue = () => audioPlayerInstance.songs.getCurrentQueue().length > 0;
-            if (areSongsInQueue()) {
-                songsToAdd.forEach(song => {
-                    audioPlayerInstance.songs.addSong(song);
-                });
-                return await interaction.channel.send('Music added!');
-            }
-            audioPlayerInstance.playMusic();
-            return await interaction.channel.send('Starting Songs!');
+            const { startedFresh } = await musicPlayer.enqueue(channel, interaction.channel, selectedUrls, interaction.user);
+            return startedFresh
+                ? interaction.channel.send('Starting Songs!')
+                : interaction.channel.send('Music added!');
         }
         catch (error) {
             console.error(error);
             return await interaction.channel.send('Something happened when trying to play music, senpai. :(');
         }
     }
-    async getQueryResults(interaction) {
-        try {
-            const songToSearch = await interaction.options.get('song_name').value;
-            console.log(await search(songToSearch, { limit: 5 }));
-            return await search(songToSearch, { limit: 5 });
-        }
-        catch (error) {
-            console.log(error);
-        }
-    }
-    async printOptionsFound(songs, interaction, channel) {
-        const songsToPrint = songs.map(song => {
+    async printOptionsFound(tracks, interaction) {
+        const songsToPrint = tracks.slice(0, 5).map(track => {
             return {
-                label: song.title,
-                value: song.url
+                label: track.title.slice(0, 100),
+                value: track.url
             };
         });
         const row = new builders_1.ActionRowBuilder()
@@ -75,7 +61,7 @@ class PlayCommand {
             .setCustomId('select')
             .setPlaceholder('Nothing selected, senpai')
             .setMinValues(0)
-            .setMaxValues(songs.length)
+            .setMaxValues(songsToPrint.length)
             .addOptions(songsToPrint));
         const optionsModal = await interaction.reply({ content: 'This is what i found, senpai!', components: [row] });
         const collectorHandler = new SelectMenuHandler_1.SelectMenuHandler(optionsModal, { componentType: v10_1.ComponentType.StringSelect, time: 3600000 }, songsToPrint);
