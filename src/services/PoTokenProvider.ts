@@ -176,7 +176,13 @@ export class PoTokenProvider {
 
     const { program, globalName } = rawChallenge;
 
-    const browser = await puppeteer.launch({ headless: true });
+    // --no-sandbox: Chromium's own sandbox needs unprivileged user
+    // namespaces, which Ubuntu 23.10+ disables by default via AppArmor —
+    // without this flag the browser process refuses to start at all on a
+    // bare server ("No usable sandbox!"). Low risk here since the only page
+    // ever loaded is youtube.com running BotGuard's own script, not
+    // arbitrary/untrusted content.
+    const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
     let poToken: string;
     try {
       const page = await browser.newPage();
