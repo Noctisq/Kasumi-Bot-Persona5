@@ -1,0 +1,10 @@
+{
+  "name": "kasumi-activity",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Discord Activity prototype for Kasumi's music player UI",
+  "scripts": {
+    "dev": "pnpm run --filter \"./packages/**\" --parallel dev",
+    "tunnel": "cloudflared tunnel --url http://localhost:3000"
+  }
+}

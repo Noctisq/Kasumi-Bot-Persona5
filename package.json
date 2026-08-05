@@ -13,6 +13,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^6.9.1",
     "eslint": "^8.52.0",
     "typescript": "^5.2.2"
@@ -24,13 +26,19 @@
     "@discordjs/rest": "^2.0.1",
     "@discordjs/voice": "^0.16.0",
     "@snazzah/davey": "^0.1.12",
+    "bgutils-js": "^3.2.0",
     "discord-api-types": "^0.38.52",
     "discord-player": "7.2.0",
     "discord-player-googlevideo": "^0.2.5",
     "discord.js": "^14.13.0",
     "dotenv": "^16.3.1",
+    "express": "^4.22.2",
     "ffmpeg-static": "^5.2.0",
+    "googlevideo": "^4.1.1",
     "libsodium-wrappers": "^0.7.13",
-    "mediaplex": "^1.0.0"
+    "mediaplex": "^1.0.0",
+    "puppeteer": "^25.4.0",
+    "ws": "^8.21.2",
+    "youtubei.js": "^17.2.0"
   }
 }

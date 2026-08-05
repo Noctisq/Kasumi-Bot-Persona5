@@ -1,0 +1,530 @@
+@font-face {
+	font-family: 'Persona Menu';
+	src: url('./fonts/PersonaMenuFont.ttf') format('truetype');
+	font-display: swap;
+}
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+	width: 100%;
+	height: 100%;
+}
+
+:root {
+	--am-text: #f5f5f7;
+	--am-text-secondary: rgba(245, 245, 247, 0.62);
+	--am-text-tertiary: rgba(245, 245, 247, 0.4);
+	--am-surface: rgba(255, 255, 255, 0.08);
+	--am-surface-hover: rgba(255, 255, 255, 0.14);
+	--am-hairline: rgba(255, 255, 255, 0.1);
+	--am-control: #f5f5f7;
+	--p5-red: #e60012;
+}
+
+#app {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-family:
+		-apple-system,
+		BlinkMacSystemFont,
+		'Segoe UI',
+		Roboto,
+		Helvetica,
+		Arial,
+		sans-serif;
+	-webkit-font-smoothing: antialiased;
+	color: var(--am-text);
+	background-color: #1c1c1e;
+	overflow: hidden;
+	isolation: isolate;
+}
+
+/* Kasumi's art as a static ambient backdrop, with a slow zoom/pan so it
+   doesn't feel like a still image. */
+.hero-bg {
+	position: absolute;
+	inset: 0;
+	z-index: -3;
+	overflow: hidden;
+}
+
+.hero-bg img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: center 30%;
+	animation: heroDrift 18s ease-in-out infinite alternate;
+}
+
+@keyframes heroDrift {
+	from {
+		transform: scale(1) translate(0, 0);
+	}
+	to {
+		transform: scale(1.06) translate(-1.2%, -0.6%);
+	}
+}
+
+/* darken the art a bit so the card stays readable on top of it */
+#app::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: -2;
+	background: linear-gradient(
+		100deg,
+		rgba(0, 0, 0, 0.75) 0%,
+		rgba(0, 0, 0, 0.4) 32%,
+		rgba(0, 0, 0, 0.18) 55%,
+		rgba(0, 0, 0, 0.4) 100%
+	);
+}
+
+/* Red rays radiating from the album art's real screen position. Sized and
+   positioned from JS (see positionRayBurst in main.ts) so that THIS
+   ELEMENT'S OWN center lands exactly on the art's center — the gradient
+   uses the simple default "at center" and rotates around its own default
+   transform-origin, no offset math needed, and it stays correct on resize
+   since JS recomputes it. */
+.ray-burst {
+	position: absolute;
+	z-index: -1;
+	background: repeating-conic-gradient(var(--p5-red) 0deg 3deg, transparent 3deg 15deg);
+	opacity: 0.12;
+	mix-blend-mode: screen;
+	animation: spin 11s linear infinite;
+}
+
+@keyframes spin {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+/* --- Layout: player card + optional side panel, side by side --- */
+
+.app-shell {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	align-items: flex-start;
+	gap: clamp(16px, 2.5vw, 32px);
+}
+
+.now-playing-card {
+	display: flex;
+	flex-direction: column;
+	gap: clamp(16px, 2.5vh, 28px);
+	width: min(52vw, 720px);
+	padding: clamp(20px, 2.6vw, 40px);
+}
+
+.track-row {
+	display: flex;
+	align-items: center;
+	gap: clamp(14px, 1.6vw, 24px);
+}
+
+.art {
+	width: clamp(72px, 9vw, 160px);
+	height: clamp(72px, 9vw, 160px);
+	border-radius: 8px;
+	object-fit: cover;
+	box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+	flex-shrink: 0;
+}
+
+.track-meta {
+	flex: 1 1 auto;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.track-title {
+	font-family: 'Persona Menu', sans-serif;
+	font-size: clamp(18px, 2.4vw, 32px);
+	letter-spacing: 0.5px;
+	font-weight: 400;
+	line-height: 1.2;
+	white-space: normal;
+	overflow-wrap: break-word;
+}
+
+.track-artist {
+	font-size: clamp(14px, 1.5vw, 21px);
+	color: var(--am-text-secondary);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.channel-label {
+	margin-top: 2px;
+	font-size: clamp(11px, 0.9vw, 14px);
+	letter-spacing: 0.3px;
+	color: var(--am-text-tertiary);
+}
+
+.track-actions {
+	display: flex;
+	gap: 8px;
+	flex-shrink: 0;
+}
+
+.icon-btn {
+	all: unset;
+	width: clamp(34px, 3vw, 46px);
+	height: clamp(34px, 3vw, 46px);
+	border-radius: 50%;
+	background: var(--am-surface);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: clamp(14px, 1.3vw, 19px);
+	cursor: pointer;
+	transition: background 0.15s ease;
+}
+
+.icon-btn:hover,
+.icon-btn--active {
+	background: var(--am-surface-hover);
+}
+
+/* --- Scrubber --- */
+
+.scrubber {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.scrubber-track {
+	position: relative;
+	width: 100%;
+	height: clamp(4px, 0.45vw, 7px);
+	border-radius: 2px;
+	background: rgba(255, 255, 255, 0.22);
+	overflow: hidden;
+}
+
+.scrubber-fill {
+	width: 0%;
+	height: 100%;
+	background: var(--am-control);
+	transition: width 0.2s linear;
+}
+
+.scrubber-times {
+	display: flex;
+	justify-content: space-between;
+	font-size: clamp(12px, 1vw, 15px);
+	color: var(--am-text-secondary);
+	font-variant-numeric: tabular-nums;
+}
+
+/* --- Transport --- */
+
+.transport {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: clamp(32px, 6vw, 60px);
+}
+
+.transport-btn {
+	all: unset;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--am-control);
+	font-size: clamp(24px, 2.8vw, 36px);
+	cursor: pointer;
+	transition: opacity 0.15s ease;
+}
+
+.transport-btn:hover {
+	opacity: 0.7;
+}
+
+.transport-btn:disabled {
+	opacity: 0.4;
+	cursor: default;
+}
+
+.transport-btn--main {
+	font-size: clamp(36px, 4.4vw, 54px);
+}
+
+/* --- Volume --- */
+
+.volume-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.volume-icon {
+	font-size: clamp(13px, 1vw, 17px);
+	color: var(--am-text-secondary);
+	flex-shrink: 0;
+}
+
+.volume-slider {
+	flex: 1 1 auto;
+	appearance: none;
+	-webkit-appearance: none;
+	height: clamp(4px, 0.4vw, 6px);
+	border-radius: 2px;
+	background: rgba(255, 255, 255, 0.22);
+	outline: none;
+}
+
+.volume-slider::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	width: clamp(14px, 1.1vw, 18px);
+	height: clamp(14px, 1.1vw, 18px);
+	border-radius: 50%;
+	background: var(--am-control);
+	cursor: pointer;
+}
+
+.volume-slider::-moz-range-thumb {
+	width: clamp(14px, 1.1vw, 18px);
+	height: clamp(14px, 1.1vw, 18px);
+	border-radius: 50%;
+	background: var(--am-control);
+	border: none;
+	cursor: pointer;
+}
+
+/* --- Side panel: search + queue unified, sits beside the player card --- */
+
+/* Dark backdrop behind the panel when it's acting as a modal (narrow
+   layouts only — hidden outright on wide layouts via the media query
+   below). */
+.panel-backdrop {
+	display: none;
+	position: fixed;
+	inset: 0;
+	z-index: 4;
+	background: rgba(0, 0, 0, 0.5);
+}
+
+.panel-backdrop--open {
+	display: block;
+}
+
+/* Narrow layouts: the panel behaves like a modal, centered over a dark
+   backdrop, toggled open/closed. Wide layouts (media query further down)
+   turn it back into a normal sibling of .now-playing-card, always visible,
+   so both are on screen together whenever there's room for it. */
+.side-panel {
+	display: none;
+	flex-direction: column;
+	position: fixed;
+	z-index: 5;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: min(90vw, 420px);
+	max-height: 78vh;
+	background: rgba(20, 20, 22, 0.22);
+	backdrop-filter: blur(3px);
+	-webkit-backdrop-filter: blur(3px);
+	border-radius: 14px;
+	overflow: hidden;
+}
+
+.side-panel--open {
+	display: flex;
+}
+
+@media (min-width: 900px) {
+	.panel-backdrop {
+		display: none;
+	}
+
+	.side-panel {
+		display: flex;
+		position: static;
+		transform: none;
+		width: min(32vw, 420px);
+	}
+
+	#panel-toggle {
+		display: none;
+	}
+}
+
+.side-panel-body {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: clamp(16px, 2vw, 26px);
+	overflow: hidden;
+	min-height: 0;
+}
+
+.side-panel-title {
+	font-size: clamp(13px, 1vw, 16px);
+	font-weight: 600;
+	letter-spacing: 0.3px;
+	text-transform: uppercase;
+	color: var(--am-text-secondary);
+}
+
+.search-input {
+	width: 100%;
+	padding: clamp(9px, 0.8vw, 13px) clamp(12px, 1vw, 16px);
+	background: var(--am-surface);
+	border: none;
+	border-radius: 10px;
+	color: var(--am-text);
+	font-family: inherit;
+	font-size: clamp(14px, 1vw, 17px);
+}
+
+.search-input::placeholder {
+	color: var(--am-text-tertiary);
+}
+
+.search-input:focus {
+	outline: none;
+	background: var(--am-surface-hover);
+}
+
+.track-list {
+	display: flex;
+	flex-direction: column;
+	overflow-y: auto;
+}
+
+.track-item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 7px 4px;
+	border-bottom: 1px solid var(--am-hairline);
+	transition: opacity 0.15s ease;
+}
+
+.track-item--clickable {
+	cursor: pointer;
+	transition: background 0.12s ease;
+	border-radius: 8px;
+}
+
+.track-item--clickable:hover {
+	background: var(--am-surface);
+}
+
+.track-item--added {
+	opacity: 0.3;
+	background: rgba(120, 220, 150, 0.18);
+	pointer-events: none;
+}
+
+.track-item[draggable='true'] {
+	cursor: grab;
+}
+
+.track-item.dragging {
+	opacity: 0.35;
+}
+
+.track-item-index {
+	width: 18px;
+	flex-shrink: 0;
+	text-align: center;
+	font-size: 12px;
+	font-variant-numeric: tabular-nums;
+	color: var(--am-text-tertiary);
+}
+
+.track-item-art {
+	width: clamp(38px, 3vw, 52px);
+	height: clamp(38px, 3vw, 52px);
+	border-radius: 6px;
+	object-fit: cover;
+	flex-shrink: 0;
+}
+
+.track-item-meta {
+	flex: 1 1 auto;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+}
+
+.track-item-title {
+	font-size: clamp(13px, 1vw, 15px);
+	color: var(--am-text);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.track-item-artist {
+	font-size: clamp(11px, 0.85vw, 13px);
+	color: var(--am-text-secondary);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.track-item-remove {
+	all: unset;
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	background: var(--am-surface);
+	color: var(--am-text-secondary);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	font-size: 10px;
+	flex-shrink: 0;
+}
+
+/* --- Connection error banner --- */
+
+.connection-banner {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: 10;
+	padding: 10px 16px;
+	background: var(--p5-red);
+	color: #fff;
+	font-size: 13px;
+	text-align: center;
+}
+
+.track-item-remove:hover {
+	background: var(--am-surface-hover);
+	color: var(--am-text);
+}
+
+.empty-hint {
+	font-size: 13px;
+	color: var(--am-text-tertiary);
+	text-align: center;
+	padding: 20px 0;
+}

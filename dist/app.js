@@ -3,12 +3,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
 const CommandRegistry_1 = require("./Classes/CommandRegistry");
 const DiscordPlayerMusicService_1 = require("./services/DiscordPlayerMusicService");
+const ActivityGateway_1 = require("./services/ActivityGateway");
 const play_1 = require("./commands/play");
 const love_1 = require("./commands/love");
 require("dotenv/config");
 async function bootstrap() {
     const client = new discord_js_1.Client({ intents: [discord_js_1.GatewayIntentBits.Guilds, discord_js_1.GatewayIntentBits.GuildVoiceStates] });
     const musicPlayer = await DiscordPlayerMusicService_1.DiscordPlayerMusicService.create(client);
+    const activityGateway = new ActivityGateway_1.ActivityGateway(musicPlayer, Number(process.env.ACTIVITY_PORT) || 3001);
+    activityGateway.start();
     const commands = new CommandRegistry_1.CommandRegistry();
     commands.register(new play_1.PlayCommand(musicPlayer));
     commands.register(new love_1.LoveCommand());

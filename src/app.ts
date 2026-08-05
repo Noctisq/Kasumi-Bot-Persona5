@@ -1,6 +1,7 @@
 import { Client, GatewayIntentBits } from 'discord.js';
 import { CommandRegistry } from './Classes/CommandRegistry';
 import { DiscordPlayerMusicService } from './services/DiscordPlayerMusicService';
+import { ActivityGateway } from './services/ActivityGateway';
 import { PlayCommand } from './commands/play';
 import { LoveCommand } from './commands/love';
 import 'dotenv/config';
@@ -8,6 +9,9 @@ import 'dotenv/config';
 async function bootstrap() {
     const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
     const musicPlayer = await DiscordPlayerMusicService.create(client);
+
+    const activityGateway = new ActivityGateway(musicPlayer, Number(process.env.ACTIVITY_PORT) || 3001);
+    activityGateway.start();
 
     const commands = new CommandRegistry();
     commands.register(new PlayCommand(musicPlayer));
