@@ -155,6 +155,7 @@ _PatchedYoutubeSabrExtractor_innertube = new WeakMap(), _PatchedYoutubeSabrExtra
 /* v8 ignore start */
 async function _PatchedYoutubeSabrExtractor_startStream(videoId, outputStream) {
     const playerResponse = await __classPrivateFieldGet(this, _PatchedYoutubeSabrExtractor_instances, "m", _PatchedYoutubeSabrExtractor_makePlayerRequest).call(this, videoId);
+    console.error('[DEBUG]', 'videoId=', videoId, 'hasServerAbrUrl=', !!playerResponse.streaming_data?.server_abr_streaming_url, 'hasPlayer=', !!__classPrivateFieldGet(this, _PatchedYoutubeSabrExtractor_innertube, "f")?.session.player, 'signatureTimestamp=', __classPrivateFieldGet(this, _PatchedYoutubeSabrExtractor_innertube, "f")?.session.player?.signature_timestamp, 'playabilityStatus=', JSON.stringify(playerResponse.playability_status));
     const serverAbrStreamingUrl = await __classPrivateFieldGet(this, _PatchedYoutubeSabrExtractor_innertube, "f")?.session.player?.decipher(playerResponse.streaming_data?.server_abr_streaming_url);
     const videoPlaybackUstreamerConfig = playerResponse.player_config?.media_common_config.media_ustreamer_request_config?.video_playback_ustreamer_config;
     if (!videoPlaybackUstreamerConfig) {
