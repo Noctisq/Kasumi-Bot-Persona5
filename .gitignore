@@ -61,6 +61,9 @@ typings/
 # dotenv environment variables file
 .env
 
+# Runtime-updated YouTube cookie (see YoutubeCookieStore)
+/data/youtube-cookie.txt
+
 # next.js build output
 .next
 

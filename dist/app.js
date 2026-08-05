@@ -6,6 +6,7 @@ const DiscordPlayerMusicService_1 = require("./services/DiscordPlayerMusicServic
 const ActivityGateway_1 = require("./services/ActivityGateway");
 const play_1 = require("./commands/play");
 const love_1 = require("./commands/love");
+const set_cookie_1 = require("./commands/set-cookie");
 require("dotenv/config");
 async function bootstrap() {
     const client = new discord_js_1.Client({ intents: [discord_js_1.GatewayIntentBits.Guilds, discord_js_1.GatewayIntentBits.GuildVoiceStates] });
@@ -15,6 +16,7 @@ async function bootstrap() {
     const commands = new CommandRegistry_1.CommandRegistry();
     commands.register(new play_1.PlayCommand(musicPlayer));
     commands.register(new love_1.LoveCommand());
+    commands.register(new set_cookie_1.SetCookieCommand(musicPlayer));
     client.once('ready', () => console.info(`Iniciando a ${client.user.tag}!`));
     client.on('interactionCreate', async (interaction) => {
         if (!interaction.isChatInputCommand())

@@ -59,4 +59,8 @@ export interface MusicPlayer {
   removeTrackFromQueue(guildId: string, url: string): boolean;
   moveTrackInQueue(guildId: string, url: string, toIndex: number): boolean;
   setVolume(guildId: string, volume: number): boolean;
+
+  // Updates the YouTube session cookie and refreshes the extractor's live
+  // session with it — no process restart needed. See /set-cookie.
+  refreshYoutubeCookie(cookie: string): Promise<void>;
 }

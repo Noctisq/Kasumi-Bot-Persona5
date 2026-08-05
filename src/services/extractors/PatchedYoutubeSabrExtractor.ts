@@ -11,7 +11,6 @@ import {
 import { SabrStream } from 'googlevideo/sabr-stream';
 import { buildSabrFormat, EnabledTrackTypes } from 'googlevideo/utils';
 import { Constants, Innertube, Platform, type Types, UniversalCache, YTNodes } from 'youtubei.js';
-import { generateWebPoToken } from 'discord-player-googlevideo';
 import { PoTokenProvider } from '../PoTokenProvider';
 
 // Fork of discord-player-googlevideo's YoutubeSabrExtractor (source:
@@ -116,6 +115,7 @@ export class PatchedYoutubeSabrExtractor extends BaseExtractor<PatchedYoutubeSab
       po_token: poToken,
       visitor_data: visitorData,
       cache: new UniversalCache(true, '/tmp/.cache'),
+      ...(this.options.poTokenProvider.getCookie() ? { cookie: this.options.poTokenProvider.getCookie() } : {}),
     });
 
     this.protocols = ['ytsearch', 'youtube'];
@@ -203,18 +203,19 @@ export class PatchedYoutubeSabrExtractor extends BaseExtractor<PatchedYoutubeSab
 
     const sabrFormats = playerResponse.streaming_data?.adaptive_formats.map((format) => buildSabrFormat(format as never)) || [];
 
-    // Distinct from the session-level po_token used above: this one is
-    // minted per-video for the SABR media session itself, via upstream's
-    // own jsdom-based generator. Left untouched — our root-cause fix was
-    // specifically the session-level token used for the watch/search
-    // requests; this one already degrades gracefully (try/catch, streams
-    // without it) if jsdom gets rejected here too.
+    // SabrStream's own "stream protection status" check (googlevideo's
+    // SabrStream.js) stays at ATTESTATION_PENDING and silently withholds
+    // media segments — no error at first, just no new data — unless the
+    // po_token here is minted specifically for THIS video, not just our
+    // session identity. Confirmed by testing: the session-level token
+    // (used above, in activate()) gets search/watch requests working, but
+    // streaming still eventually hits "No media parts or protocol updates
+    // received from server" without a content-bound one here.
     let poToken: string | undefined;
     try {
-      const poTokenResult = await generateWebPoToken(videoId);
-      poToken = poTokenResult.poToken;
+      poToken = await this.options.poTokenProvider.getTokenForVideo(videoId);
     } catch (error) {
-      console.warn('[PatchedYoutubeSabrExtractor] Failed to generate per-video PO token:', error);
+      console.warn('[PatchedYoutubeSabrExtractor] Failed to get per-video PO token for streaming:', error);
     }
 
     const serverAbrStream = new SabrStream({
@@ -229,6 +230,33 @@ export class PatchedYoutubeSabrExtractor extends BaseExtractor<PatchedYoutubeSab
         ),
         clientVersion: this.#innertube?.session.context.client.clientVersion,
       },
+    });
+
+    // YouTube asks for a "reload" (new playback URL + config, same video)
+    // periodically during a stream — confirmed empirically this arrives
+    // around the ~60s mark. Without a handler, SabrStream just throws
+    // ("Player response reload requested by server") and the stream dies,
+    // which is what surfaced as "No media parts or protocol updates
+    // received from server" after retries were exhausted. Mirrors the
+    // reference implementation in googlevideo's own examples
+    // (sabr-stream-factory.ts) — re-request with the reload context, hand
+    // the fresh URL/config back to the same stream instead of dying.
+    serverAbrStream.on('reloadPlayerResponse', async (reloadPlaybackContext) => {
+      try {
+        const reloadedResponse = await this.#makePlayerRequest(videoId, reloadPlaybackContext);
+        const freshUrl = await this.#innertube?.session.player?.decipher(reloadedResponse.streaming_data?.server_abr_streaming_url);
+        const freshConfig =
+          reloadedResponse.player_config?.media_common_config.media_ustreamer_request_config?.video_playback_ustreamer_config;
+
+        if (freshUrl && freshConfig) {
+          serverAbrStream.setStreamingURL(freshUrl);
+          serverAbrStream.setUstreamerConfig(freshConfig);
+        } else {
+          console.error('[PatchedYoutubeSabrExtractor] Reload response missing URL/config, stream will likely stall.');
+        }
+      } catch (error) {
+        console.error('[PatchedYoutubeSabrExtractor] Failed to handle reloadPlayerResponse:', error);
+      }
     });
 
     type SabrPlaybackOptions = {
@@ -476,7 +504,7 @@ export class PatchedYoutubeSabrExtractor extends BaseExtractor<PatchedYoutubeSab
     return `${minutes}:${secs.toString().padStart(2, '0')}`;
   }
 
-  async #makePlayerRequest(videoId: string): Promise<PlayerResponse> {
+  async #makePlayerRequest(videoId: string, reloadPlaybackContext?: unknown): Promise<PlayerResponse> {
     /* v8 ignore start */
     if (!this.#innertube) {
       throw new Error('PatchedYoutubeSabrExtractor not initialized');
@@ -487,7 +515,7 @@ export class PatchedYoutubeSabrExtractor extends BaseExtractor<PatchedYoutubeSab
       watchEndpoint: { videoId },
     });
 
-    const playbackContext = {
+    const playbackContext: Record<string, unknown> = {
       contentPlaybackContext: {
         vis: 0,
         splay: false,
@@ -495,6 +523,9 @@ export class PatchedYoutubeSabrExtractor extends BaseExtractor<PatchedYoutubeSab
         signatureTimestamp: this.#innertube.session.player?.signature_timestamp,
       },
     };
+    if (reloadPlaybackContext) {
+      playbackContext.reloadPlaybackContext = reloadPlaybackContext;
+    }
 
     const extraArgs = {
       playbackContext,

@@ -4,6 +4,7 @@ import { DiscordPlayerMusicService } from './services/DiscordPlayerMusicService'
 import { ActivityGateway } from './services/ActivityGateway';
 import { PlayCommand } from './commands/play';
 import { LoveCommand } from './commands/love';
+import { SetCookieCommand } from './commands/set-cookie';
 import 'dotenv/config';
 
 async function bootstrap() {
@@ -16,6 +17,7 @@ async function bootstrap() {
     const commands = new CommandRegistry();
     commands.register(new PlayCommand(musicPlayer));
     commands.register(new LoveCommand());
+    commands.register(new SetCookieCommand(musicPlayer));
 
     client.once('ready', () => console.info(`Iniciando a ${client.user.tag}!`));
     client.on('interactionCreate', async interaction => {

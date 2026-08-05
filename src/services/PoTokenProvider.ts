@@ -1,10 +1,42 @@
 import puppeteer from 'puppeteer';
 import { Innertube } from 'youtubei.js';
 import { buildURL, GOOG_API_KEY, USER_AGENT } from 'bgutils-js';
+import { YoutubeCookieStore } from './YoutubeCookieStore';
 
 export interface PoToken {
   poToken: string;
   visitorData: string;
+}
+
+interface RawBgChallenge {
+  program: string;
+  globalName: string;
+  interpreterUrl: {
+    privateDoNotAccessOrElseTrustedResourceUrlWrappedValue: string;
+  };
+}
+
+// Finds the substring starting at `openIndex` (must be a '{') up to and
+// including its matching closing '}', respecting string literals so a
+// brace inside a quoted string doesn't throw off the count.
+function extractBalancedBraces(text: string, openIndex: number): string {
+  let depth = 0;
+  let quote: '"' | "'" | null = null;
+  for (let i = openIndex; i < text.length; i++) {
+    const char = text[i];
+    if (quote) {
+      if (char === '\\') i++; // skip escaped char, whatever it is
+      else if (char === quote) quote = null;
+      continue;
+    }
+    if (char === '"' || char === "'") quote = char;
+    else if (char === '{') depth++;
+    else if (char === '}') {
+      depth--;
+      if (depth === 0) return text.slice(openIndex, i + 1);
+    }
+  }
+  throw new Error('Llave sin cerrar al extraer el objeto de window.ytAtN');
 }
 
 // Same request key discord-player-googlevideo's own generateWebPoToken()
@@ -27,6 +59,7 @@ const DEFAULT_REFRESH_MS = 6 * 60 * 60 * 1000;
 // on a small VM bounded to "briefly, once every few hours" rather than
 // "always".
 export class PoTokenProvider {
+  private readonly cookieStore = new YoutubeCookieStore();
   private current: PoToken | null = null;
   private refreshing: Promise<PoToken> | null = null;
   private refreshTimer: NodeJS.Timeout | null = null;
@@ -36,10 +69,35 @@ export class PoTokenProvider {
     return this.refresh();
   }
 
+  getCookie(): string {
+    return this.cookieStore.get();
+  }
+
+  // Called from /set-cookie. Drops the cached session token so the next
+  // getToken() re-mints against the new cookie instead of reusing the old
+  // (possibly stale) session identity.
+  setCookie(cookie: string): void {
+    this.cookieStore.set(cookie);
+    this.current = null;
+    if (this.refreshTimer) clearTimeout(this.refreshTimer);
+  }
+
+  // The session token from getToken() is bound to our visitor identity —
+  // enough for the watch/search requests, but SabrStream's own "stream
+  // protection status" check stays stuck at ATTESTATION_PENDING and never
+  // releases media segments unless the token it sees is minted for THIS
+  // specific video. Real browser, same as getToken(), just a different
+  // final identity. No caching here (every video needs its own), but
+  // that's fine — prefetching already runs this ahead of playback.
+  async getTokenForVideo(videoId: string): Promise<string> {
+    const { poToken } = await this.mint(videoId);
+    return poToken;
+  }
+
   private refresh(): Promise<PoToken> {
     if (this.refreshing) return this.refreshing;
 
-    this.refreshing = this.mintToken()
+    this.refreshing = this.mint()
       .then((token) => {
         this.current = token;
         return token;
@@ -60,28 +118,70 @@ export class PoTokenProvider {
     }, delayMs).unref();
   }
 
-  private async mintToken(): Promise<PoToken> {
+  // videoId omitted -> session-bound token (mint identity = visitorData,
+  // cached, auto-refreshed). videoId given -> content-bound token for that
+  // video (minted fresh every time, not cached).
+  //
+  // Challenge is pulled straight from youtube.com's own HTML (the embedded
+  // window.ytAtN({...}) call), not via Innertube's getAttestationChallenge()
+  // API — confirmed by the community (see
+  // https://github.com/LuanRT/googlevideo/issues/45) that streaming
+  // specifically needs the challenge sourced this way; the API-fetched one
+  // leaves SabrStream's attestation permanently stuck "pending" even
+  // though it's perfectly fine for search/watch requests.
+  private async mint(videoId?: string): Promise<PoToken> {
+    // SabrStream's attestation stayed permanently "pending" across four
+    // different anonymous approaches (session vs content-bound token,
+    // PLAYBACK engagement type, HTML-scraped challenge) — everything
+    // pointed at needing a genuinely authenticated session, not a better
+    // anonymous one. YOUTUBE_COOKIES carries that authentication through
+    // every touchpoint here: the bootstrap session, the challenge fetch,
+    // and the Puppeteer page itself.
+    const cookie = this.cookieStore.get();
+
     const bootstrapInnertube = await Innertube.create({
       user_agent: USER_AGENT,
       enable_session_cache: false,
+      ...(cookie ? { cookie } : {}),
     });
     const visitorData = bootstrapInnertube.session.context.client.visitorData || '';
 
-    const challengeResponse = await bootstrapInnertube.getAttestationChallenge('ENGAGEMENT_TYPE_UNBOUND');
-    if (!challengeResponse.bg_challenge) throw new Error('No se pudo obtener el reto de atestación de BotGuard');
+    const pageResponse = await fetch('https://www.youtube.com', {
+      headers: {
+        accept: '*/*',
+        'accept-language': 'en-US,en;q=0.7',
+        'user-agent': USER_AGENT,
+        ...(cookie ? { cookie } : {}),
+      },
+    });
+    const pageHtml = await pageResponse.text();
 
-    const interpreterUrl =
-      challengeResponse.bg_challenge.interpreter_url.private_do_not_access_or_else_trusted_resource_url_wrapped_value;
+    // window.ytAtN({'R': '...', 'T': ...}) — R is itself a JSON STRING
+    // (with \x-escaped characters), and the whole thing is a JS object
+    // literal (single-quoted keys), not strict JSON — brace-balance and
+    // evaluate it as JS rather than a regex assuming a fixed suffix, since
+    // the surrounding wrapper code is YouTube's own minified output and
+    // shifts between deploys.
+    const callStart = pageHtml.indexOf('window.ytAtN({');
+    if (callStart === -1) throw new Error('No se encontró la llamada a window.ytAtN en el HTML de YouTube');
+    const objectLiteral = extractBalancedBraces(pageHtml, pageHtml.indexOf('{', callStart));
+    // eslint-disable-next-line no-new-func
+    const ytAtNArg = new Function(`return ${objectLiteral}`)() as { R: string };
+    const rawChallenge = (JSON.parse(ytAtNArg.R) as { bgChallenge?: RawBgChallenge }).bgChallenge;
+    if (!rawChallenge) throw new Error('No se pudo obtener el reto de atestación de BotGuard');
+
+    const interpreterUrl = rawChallenge.interpreterUrl.privateDoNotAccessOrElseTrustedResourceUrlWrappedValue;
     const interpreterJavascript = await (await fetch(`https:${interpreterUrl}`)).text();
     if (!interpreterJavascript) throw new Error('No se pudo cargar el script de BotGuard');
 
-    const { program, global_name: globalName } = challengeResponse.bg_challenge;
+    const { program, globalName } = rawChallenge;
 
     const browser = await puppeteer.launch({ headless: true });
     let poToken: string;
     try {
       const page = await browser.newPage();
       await page.setUserAgent(USER_AGENT);
+      if (cookie) await page.setExtraHTTPHeaders({ cookie });
       await page.goto('https://www.youtube.com/', { waitUntil: 'domcontentloaded' });
 
       const botguardResponse = await page.evaluate(runBotGuardSnapshot, interpreterJavascript, program, globalName);
@@ -102,13 +202,17 @@ export class PoTokenProvider {
         throw new Error(`No se obtuvo integrity token: ${JSON.stringify(integrityJson)}`);
       }
 
-      poToken = await page.evaluate(mintWebPoToken, integrityToken, visitorData);
+      poToken = await page.evaluate(mintWebPoToken, integrityToken, videoId ?? visitorData);
 
-      const refreshMs =
-        typeof mintRefreshThresholdSecs === 'number' && mintRefreshThresholdSecs > 0
-          ? mintRefreshThresholdSecs * 1000
-          : DEFAULT_REFRESH_MS;
-      this.scheduleRefresh(refreshMs);
+      // Only the session token is cached/reused, so only it needs a
+      // refresh schedule — a content-bound mint is used once and discarded.
+      if (!videoId) {
+        const refreshMs =
+          typeof mintRefreshThresholdSecs === 'number' && mintRefreshThresholdSecs > 0
+            ? mintRefreshThresholdSecs * 1000
+            : DEFAULT_REFRESH_MS;
+        this.scheduleRefresh(refreshMs);
+      }
     } finally {
       await browser.close();
     }

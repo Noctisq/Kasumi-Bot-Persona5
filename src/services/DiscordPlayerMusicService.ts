@@ -48,14 +48,19 @@ export class DiscordPlayerMusicService implements MusicPlayer {
   // most one YouTube request, not an unbounded number.
   private readonly prefetchCache = new Map<string, PrefetchSlot>();
 
-  private constructor(private readonly player: Player) {}
+  private constructor(
+    private readonly player: Player,
+    private readonly poTokenProvider: PoTokenProvider,
+    private readonly extractor: PatchedYoutubeSabrExtractor
+  ) {}
 
   static async create(client: Client): Promise<DiscordPlayerMusicService> {
     const player = new Player(client);
     const poTokenProvider = new PoTokenProvider();
-    await player.extractors.register(PatchedYoutubeSabrExtractor, { poTokenProvider });
+    const extractor = await player.extractors.register(PatchedYoutubeSabrExtractor, { poTokenProvider });
+    if (!extractor) throw new Error('Failed to register PatchedYoutubeSabrExtractor');
 
-    const service = new DiscordPlayerMusicService(player);
+    const service = new DiscordPlayerMusicService(player, poTokenProvider, extractor);
 
     player.events.on('playerStart', (queue, track) => {
       service.transitioning.delete(queue.guild.id);
@@ -367,6 +372,14 @@ export class DiscordPlayerMusicService implements MusicPlayer {
         })
         .catch(() => {});
     }
+  }
+
+  async refreshYoutubeCookie(cookie: string): Promise<void> {
+    this.poTokenProvider.setCookie(cookie);
+    // reconfigure() (built into discord-player's BaseExtractor) deactivates
+    // and reactivates the extractor, which re-creates its Innertube session
+    // using the new cookie — no process restart needed.
+    await this.extractor.reconfigure(this.extractor.options);
   }
 
   private toTrackInfo(track: Track): PlayerTrackInfo {

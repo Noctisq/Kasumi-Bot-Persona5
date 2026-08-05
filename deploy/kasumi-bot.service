@@ -1,0 +1,14 @@
+[Unit]
+Description=Kasumi Discord Bot
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/Kasumi-Bot-Persona5
+ExecStart=/usr/bin/node dist/app.js
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=default.target

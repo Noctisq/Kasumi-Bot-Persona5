@@ -6,8 +6,10 @@ const discord_player_1 = require("discord-player");
 const PatchedYoutubeSabrExtractor_1 = require("./extractors/PatchedYoutubeSabrExtractor");
 const PoTokenProvider_1 = require("./PoTokenProvider");
 class DiscordPlayerMusicService {
-    constructor(player) {
+    constructor(player, poTokenProvider, extractor) {
         this.player = player;
+        this.poTokenProvider = poTokenProvider;
+        this.extractor = extractor;
         this.stateChangeListener = null;
         // Guilds where a skip/previous was issued and we're still waiting on
         // discord-player to resolve + start streaming whatever comes next. Skip
@@ -34,8 +36,10 @@ class DiscordPlayerMusicService {
     static async create(client) {
         const player = new discord_player_1.Player(client);
         const poTokenProvider = new PoTokenProvider_1.PoTokenProvider();
-        await player.extractors.register(PatchedYoutubeSabrExtractor_1.PatchedYoutubeSabrExtractor, { poTokenProvider });
-        const service = new DiscordPlayerMusicService(player);
+        const extractor = await player.extractors.register(PatchedYoutubeSabrExtractor_1.PatchedYoutubeSabrExtractor, { poTokenProvider });
+        if (!extractor)
+            throw new Error('Failed to register PatchedYoutubeSabrExtractor');
+        const service = new DiscordPlayerMusicService(player, poTokenProvider, extractor);
         player.events.on('playerStart', (queue, track) => {
             service.transitioning.delete(queue.guild.id);
             queue.metadata?.channel?.send(`Now playing **${track.title}**!`);
@@ -326,6 +330,13 @@ class DiscordPlayerMusicService {
             })
                 .catch(() => { });
         }
+    }
+    async refreshYoutubeCookie(cookie) {
+        this.poTokenProvider.setCookie(cookie);
+        // reconfigure() (built into discord-player's BaseExtractor) deactivates
+        // and reactivates the extractor, which re-creates its Innertube session
+        // using the new cookie — no process restart needed.
+        await this.extractor.reconfigure(this.extractor.options);
     }
     toTrackInfo(track) {
         return {
